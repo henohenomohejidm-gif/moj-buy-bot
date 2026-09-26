@@ -4,7 +4,6 @@ import {
   getRecentMojBuyTransactions,
   getMojReceivedAmount,
   getSuiSpentMist,
-  hasTurbosTradeEvent,
   isSuccessfulTransaction,
 } from "../lib/graphql.mjs";
 
@@ -123,7 +122,7 @@ export default async function handler(req, res) {
       await getRecentMojBuyTransactions();
 
 
-    // Get current SUI/USD price automatically
+    // Get current SUI/USD price
     const suiUsdPrice =
       await getSuiUsdPrice();
 
@@ -136,14 +135,6 @@ export default async function handler(req, res) {
       // Only successful transactions
       if (
         !isSuccessfulTransaction(transaction)
-      ) {
-        continue;
-      }
-
-
-      // Must contain Turbos TradedEvent
-      if (
-        !hasTurbosTradeEvent(transaction)
       ) {
         continue;
       }
