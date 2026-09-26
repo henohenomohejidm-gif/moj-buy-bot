@@ -1,4 +1,5 @@
 import { getConfig } from "../lib/config.mjs";
+
 import {
   getRecentMojBuyTransactions,
   getMojReceivedAmount,
@@ -6,37 +7,45 @@ import {
   hasTurbosTradeEvent,
   isSuccessfulTransaction,
 } from "../lib/graphql.mjs";
+
 import {
   hasSeen,
   markSeen,
+  isRedisConfigured,
 } from "../lib/redis.mjs";
-import {
-  formatBuyMessage,
-} from "../lib/format.mjs";
-import {
-  sendTelegramMessage,
-} from "../lib/telegram.mjs";
+
+import { formatBuyMessage } from "../lib/format.mjs";
+
+import { sendTelegramMessage } from "../lib/telegram.mjs";
+
+import { getSuiUsdPrice } from "../lib/price.mjs";
+
 
 const SUI_DECIMALS = 9;
 const MOJ_DECIMALS = 6;
+
 
 function mistToSui(mist) {
   return Number(mist) / 10 ** SUI_DECIMALS;
 }
 
+
 function rawMojToMoj(raw) {
   return Number(raw) / 10 ** MOJ_DECIMALS;
 }
 
+
 function calculatePriceAndMarketCap({
   suiAmount,
   mojAmount,
+  suiUsdPrice,
 }) {
   const config = getConfig();
 
   if (
-    !Number.isFinite(config.suiUsdPrice) ||
-    config.suiUsdPrice <= 0 ||
+    !Number.isFinite(suiUsdPrice) ||
+    suiUsdPrice <= 0 ||
+    !Number.isFinite(mojAmount) ||
     mojAmount <= 0
   ) {
     return {
@@ -45,11 +54,8 @@ function calculatePriceAndMarketCap({
     };
   }
 
-  const spentUsd =
-    suiAmount * config.suiUsdPrice;
-
   const priceUsd =
-    spentUsd / mojAmount;
+    (suiAmount * suiUsdPrice) / mojAmount;
 
   const marketCapUsd =
     config.mojTotalSupply > 0
@@ -61,6 +67,7 @@ function calculatePriceAndMarketCap({
     marketCapUsd,
   };
 }
+
 
 function validateCronSecret(req) {
   const config = getConfig();
@@ -78,8 +85,12 @@ function validateCronSecret(req) {
   );
 }
 
+
 export default async function handler(req, res) {
-  if (req.method !== "GET" && req.method !== "POST") {
+  if (
+    req.method !== "GET" &&
+    req.method !== "POST"
+  ) {
     return res.status(405).json({
       ok: false,
       error: "Method not allowed",
@@ -87,6 +98,8 @@ export default async function handler(req, res) {
   }
 
   try {
+
+    // Optional cron authentication
     if (!validateCronSecret(req)) {
       return res.status(401).json({
         ok: false,
@@ -94,27 +107,49 @@ export default async function handler(req, res) {
       });
     }
 
-    const config = getConfig();
 
+    // Redis is required to prevent duplicate notifications
+    if (!isRedisConfigured()) {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "Upstash Redis is required before enabling buy notifications. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.",
+      });
+    }
+
+
+    // Get recent Turbos MOJ buy transactions
     const transactions =
       await getRecentMojBuyTransactions();
 
+
+    // Get current SUI/USD price automatically
+    const suiUsdPrice =
+      await getSuiUsdPrice();
+
+
     const results = [];
 
+
     for (const transaction of transactions) {
-      if (!isSuccessfulTransaction(transaction)) {
+
+      // Only successful transactions
+      if (
+        !isSuccessfulTransaction(transaction)
+      ) {
         continue;
       }
 
-      /*
-       * We know this transaction:
-       * - called Turbos turbospump::buy
-       * - affected the configured MOJ pool
-       *
-       * The additional checks below make sure the sender
-       * actually received MOJ.
-       */
 
+      // Must contain Turbos TradedEvent
+      if (
+        !hasTurbosTradeEvent(transaction)
+      ) {
+        continue;
+      }
+
+
+      // MOJ received by buyer
       const mojRaw =
         getMojReceivedAmount(transaction);
 
@@ -122,16 +157,8 @@ export default async function handler(req, res) {
         continue;
       }
 
-      /*
-       * If TradedEvent data is available through GraphQL,
-       * require it. If the indexer doesn't expose the event
-       * on this transaction, we still accept the transaction
-       * because function + pool + MOJ receipt are already
-       * sufficient for this bot.
-       */
-      const hasTradeEvent =
-        hasTurbosTradeEvent(transaction);
 
+      // SUI spent by buyer
       const suiSpentMist =
         getSuiSpentMist(transaction);
 
@@ -139,6 +166,8 @@ export default async function handler(req, res) {
         continue;
       }
 
+
+      // Prevent duplicate Telegram notifications
       const key =
         `moj-buy:${transaction.digest}`;
 
@@ -146,64 +175,104 @@ export default async function handler(req, res) {
         continue;
       }
 
+
       const suiAmount =
         mistToSui(suiSpentMist);
 
       const mojAmount =
         rawMojToMoj(mojRaw);
 
+
+      // Calculate MOJ price and market cap
       const {
         priceUsd,
         marketCapUsd,
-      } = calculatePriceAndMarketCap({
-        suiAmount,
-        mojAmount,
-      });
+      } =
+        calculatePriceAndMarketCap({
+          suiAmount,
+          mojAmount,
+          suiUsdPrice,
+        });
 
+
+      // Create Telegram message
       const message =
         formatBuyMessage({
           suiAmount,
           mojAmount,
-          buyer: transaction.sender,
-          txDigest: transaction.digest,
+          buyer:
+            transaction.sender.address,
+          txDigest:
+            transaction.digest,
           priceUsd,
           marketCapUsd,
+          suiUsdPrice,
         });
 
-      await sendTelegramMessage(message);
 
+      // Send Telegram notification
+      await sendTelegramMessage(
+        message
+      );
+
+
+      // Mark transaction as already announced
       await markSeen(
         key,
         7 * 24 * 60 * 60
       );
 
+
       results.push({
-        digest: transaction.digest,
-        buyer: transaction.sender,
+        digest:
+          transaction.digest,
+
+        buyer:
+          transaction.sender.address,
+
         suiAmount,
+
         mojAmount,
-        hasTradeEvent,
+
+        suiUsdPrice,
+
         checkpoint:
-          transaction?.effects?.checkpoint
+          transaction.effects
+            ?.checkpoint
             ?.sequenceNumber ?? null,
       });
     }
 
+
     return res.status(200).json({
       ok: true,
+
       bot: "MOJ Buy Bot",
+
       network: "Sui Mainnet",
-      detected: results.length,
+
+      detected:
+        results.length,
+
       results,
-      timestamp: new Date().toISOString(),
+
+      timestamp:
+        new Date().toISOString(),
     });
+
+
   } catch (error) {
+
     console.error(error);
 
     return res.status(500).json({
       ok: false,
-      error: error.message,
-      timestamp: new Date().toISOString(),
+
+      error:
+        error.message,
+
+      timestamp:
+        new Date().toISOString(),
     });
   }
 }
