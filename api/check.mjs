@@ -122,9 +122,19 @@ export default async function handler(req, res) {
       await getRecentMojBuyTransactions();
 
 
-    // Get current SUI/USD price
-    const suiUsdPrice =
-      await getSuiUsdPrice();
+    // Get current SUI/USD price.
+    // If CoinGecko is rate-limited, continue without USD pricing.
+    let suiUsdPrice = 0;
+
+    try {
+      suiUsdPrice =
+        await getSuiUsdPrice();
+    } catch (error) {
+      console.warn(
+        "SUI price unavailable. Continuing buy notification without USD price:",
+        error.message
+      );
+    }
 
 
     const results = [];
@@ -174,7 +184,10 @@ export default async function handler(req, res) {
         rawMojToMoj(mojRaw);
 
 
-      // Calculate MOJ price and market cap
+      // Calculate MOJ price and market cap.
+      // If SUI/USD price is unavailable,
+      // these values become 0 and the message
+      // formatter will display N/A.
       const {
         priceUsd,
         marketCapUsd,
