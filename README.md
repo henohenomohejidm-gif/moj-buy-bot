@@ -69,7 +69,7 @@ For heavier production traffic, use a managed Sui GraphQL provider and put its e
 Set the total MOJ supply:
 
 ```env
-MOJ_TOTAL_SUPPLY=1000000000
+MOJ_TOTAL_SUPPLY=10000000000
 ```
 
 The bot estimates USD price from the transaction's SUI/MOJ ratio and SUI/USD. If `SUI_USD_PRICE` is blank it attempts CoinGecko's public SUI price endpoint.
