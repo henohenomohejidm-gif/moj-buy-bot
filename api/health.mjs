@@ -1,20 +1,12 @@
 import { isRedisConfigured } from "../lib/redis.mjs";
 
-
 export default async function handler(req, res) {
   return res.status(200).json({
     ok: true,
-
     service: "MOJ Buy Bot",
-
     status: "online",
-
     network: "Sui Mainnet",
-
-    redisConfigured:
-      isRedisConfigured(),
-
-    timestamp:
-      new Date().toISOString(),
+    redisConfigured: isRedisConfigured(),
+    timestamp: new Date().toISOString(),
   });
 }
