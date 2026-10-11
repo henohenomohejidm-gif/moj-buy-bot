@@ -20,11 +20,7 @@ import { getSuiUsdPrice } from "../lib/price.mjs";
 
 const SUI_DECIMALS = 9;
 const MOJ_DECIMALS = 6;
-
-// 初回の監視開始済みフラグ
 const BASELINE_KEY = "moj-buy:baseline:v1";
-
-// TXの重複防止記録を長期間保持する
 const SEEN_TTL_SECONDS = 10 * 365 * 24 * 60 * 60;
 
 function mistToSui(mist) {
@@ -51,9 +47,7 @@ function calculatePriceAndMarketCap({
     return { priceUsd: 0, marketCapUsd: 0 };
   }
 
-  const priceUsd =
-    (suiAmount * suiUsdPrice) / mojAmount;
-
+  const priceUsd = (suiAmount * suiUsdPrice) / mojAmount;
   const marketCapUsd =
     config.mojTotalSupply > 0
       ? priceUsd * config.mojTotalSupply
@@ -65,9 +59,7 @@ function calculatePriceAndMarketCap({
 function validateCronSecret(req) {
   const config = getConfig();
 
-  if (!config.cronSecret) {
-    return true;
-  }
+  if (!config.cronSecret) return true;
 
   return (
     (req.headers.authorization || "") ===
@@ -75,27 +67,37 @@ function validateCronSecret(req) {
   );
 }
 
-// 実際の購入候補に該当するかを判定する。
-// これは既存ロジックと同じ条件であり、
-// DEX上の購入を完全に証明するものではない。
 function getBuyCandidate(transaction) {
   if (!isSuccessfulTransaction(transaction)) {
-    return null;
+    return { candidate: null, reason: "transaction_not_successful" };
   }
 
-  const mojRaw = getMojReceivedAmount(transaction);
+  let mojRaw;
+  let suiSpentMist;
+
+  try {
+    mojRaw = getMojReceivedAmount(transaction);
+    suiSpentMist = getSuiSpentMist(transaction);
+  } catch (error) {
+    return {
+      candidate: null,
+      reason: "balance_parse_error",
+      detail: error.message,
+    };
+  }
 
   if (mojRaw <= 0n) {
-    return null;
+    return { candidate: null, reason: "no_moj_received_by_sender" };
   }
-
-  const suiSpentMist = getSuiSpentMist(transaction);
 
   if (suiSpentMist <= 0n) {
-    return null;
+    return { candidate: null, reason: "no_net_sui_spent" };
   }
 
-  return { mojRaw, suiSpentMist };
+  return {
+    candidate: { mojRaw, suiSpentMist },
+    reason: "candidate",
+  };
 }
 
 export default async function handler(req, res) {
@@ -121,27 +123,17 @@ export default async function handler(req, res) {
       });
     }
 
-    const transactions =
-      await getRecentMojBuyTransactions();
-
-    // 初回起動では、取得済みの履歴を通知せず、
-    // 購入候補のTXを処理済みとして登録する。
-    const baselineInitialized =
-      await hasSeen(BASELINE_KEY);
+    const transactions = await getRecentMojBuyTransactions();
+    const baselineInitialized = await hasSeen(BASELINE_KEY);
 
     if (!baselineInitialized) {
       let baselined = 0;
 
       for (const transaction of transactions) {
-        if (!transaction?.digest) {
-          continue;
-        }
+        if (!transaction?.digest) continue;
 
-        const candidate = getBuyCandidate(transaction);
-
-        if (!candidate) {
-          continue;
-        }
+        const { candidate } = getBuyCandidate(transaction);
+        if (!candidate) continue;
 
         await markSeen(
           `moj-buy:${transaction.digest}`,
@@ -151,11 +143,7 @@ export default async function handler(req, res) {
         baselined++;
       }
 
-      // すべての履歴登録が成功してから初回完了を記録する。
-      await markSeen(
-        BASELINE_KEY,
-        SEEN_TTL_SECONDS
-      );
+      await markSeen(BASELINE_KEY, SEEN_TTL_SECONDS);
 
       return res.status(200).json({
         ok: true,
@@ -173,36 +161,52 @@ export default async function handler(req, res) {
     try {
       suiUsdPrice = await getSuiUsdPrice();
     } catch (error) {
-      console.warn(
-        "SUI price unavailable:",
-        error.message
-      );
+      console.warn("SUI price unavailable:", error.message);
     }
 
     const results = [];
+    const skipped = {
+      alreadySeen: 0,
+      unsuccessful: 0,
+      noMojReceived: 0,
+      noSuiSpent: 0,
+      other: 0,
+    };
 
     for (const transaction of transactions) {
-      if (!transaction?.digest) {
-        continue;
-      }
+      if (!transaction?.digest) continue;
 
       const key = `moj-buy:${transaction.digest}`;
 
       if (await hasSeen(key)) {
+        skipped.alreadySeen++;
         continue;
       }
 
-      const candidate = getBuyCandidate(transaction);
+      const { candidate, reason, detail } =
+        getBuyCandidate(transaction);
 
       if (!candidate) {
+        if (reason === "transaction_not_successful") {
+          skipped.unsuccessful++;
+        } else if (reason === "no_moj_received_by_sender") {
+          skipped.noMojReceived++;
+        } else if (reason === "no_net_sui_spent") {
+          skipped.noSuiSpent++;
+        } else {
+          skipped.other++;
+          console.warn("MOJ candidate evaluation failed:", {
+            digest: transaction.digest,
+            reason,
+            detail,
+          });
+        }
+
         continue;
       }
 
-      const suiAmount =
-        mistToSui(candidate.suiSpentMist);
-
-      const mojAmount =
-        rawMojToMoj(candidate.mojRaw);
+      const suiAmount = mistToSui(candidate.suiSpentMist);
+      const mojAmount = rawMojToMoj(candidate.mojRaw);
 
       const { priceUsd, marketCapUsd } =
         calculatePriceAndMarketCap({
@@ -221,9 +225,8 @@ export default async function handler(req, res) {
         suiUsdPrice,
       });
 
-      // 既存動作を維持：通知成功後にTXを記録する。
+      // 通知に成功した後でのみ処理済みにする。
       await sendTelegramMessage(message);
-
       await markSeen(key, SEEN_TTL_SECONDS);
 
       results.push({
@@ -241,7 +244,9 @@ export default async function handler(req, res) {
       ok: true,
       bot: "MOJ Buy Bot",
       network: "Sui Mainnet",
+      scanned: transactions.length,
       detected: results.length,
+      skipped,
       results,
       timestamp: new Date().toISOString(),
     });
