@@ -4,7 +4,14 @@ import { getConfig } from "../lib/config.mjs";
 const CONTRACT_ADDRESS =
   "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
-const ALLOWED_COMMANDS = ["/contract", "/ca", "/CA"];
+const ALLOWED_COMMANDS = [
+  "/contract",
+  "/ca",
+  "/CA",
+  "contract",
+  "ca",
+  "CA",
+];
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
