@@ -1,4 +1,3 @@
-
 import { getConfig } from "../lib/config.mjs";
 
 const CONTRACT_ADDRESS =
@@ -6,9 +5,13 @@ const CONTRACT_ADDRESS =
 
 const ALLOWED_COMMANDS = [
   "/contract",
+  "/Contract",
+  "/CONTRACT",
   "/ca",
   "/CA",
   "contract",
+  "Contract",
+  "CONTRACT",
   "ca",
   "CA",
 ];
