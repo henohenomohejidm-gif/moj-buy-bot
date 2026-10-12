@@ -5,15 +5,9 @@ const CONTRACT_ADDRESS =
 
 const ALLOWED_COMMANDS = [
   "/contract",
-  "/Contract",
-  "/CONTRACT",
   "/ca",
-  "/CA",
   "contract",
-  "Contract",
-  "CONTRACT",
   "ca",
-  "CA",
 ];
 
 export default async function handler(req, res) {
@@ -52,7 +46,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    const command = text.split(/\s+/)[0].split("@")[0];
+    const command = text
+      .split(/\s+/)[0]
+      .split("@")[0]
+      .toLowerCase();
 
     if (!ALLOWED_COMMANDS.includes(command)) {
       return res.status(200).json({ ok: true });
