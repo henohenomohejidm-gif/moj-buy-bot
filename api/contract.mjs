@@ -1,7 +1,11 @@
+
 import { getConfig } from "../lib/config.mjs";
 
 const CONTRACT_ADDRESS =
   "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
+
+const CHART_URL =
+  "https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
 const ALLOWED_COMMANDS = [
   "/contract",
@@ -59,6 +63,9 @@ export default async function handler(req, res) {
       "🎭 MOJ — Contract Address",
       "",
       CONTRACT_ADDRESS,
+      "",
+      "📊 MOJ Chart",
+      CHART_URL,
       "",
       "⚡ MOJ / SUI",
       "🚀 Henohenomoheji",
