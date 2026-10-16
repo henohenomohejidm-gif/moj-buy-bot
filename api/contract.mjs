@@ -4,10 +4,14 @@ import { getConfig } from "../lib/config.mjs";
 const CONTRACT_ADDRESS =
   "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
+const MINI_APP_URL = "https://moj-buy-bot.vercel.app/";
+
 const CHART_URL =
   "https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
 const ALLOWED_COMMANDS = [
+  "/start",
+  "start",
   "/ca",
   "ca",
   "/contract",
@@ -32,7 +36,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Telegram Webhook認証
     const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
     const receivedSecret =
       req.headers["x-telegram-bot-api-secret-token"];
@@ -51,7 +54,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // コマンドを小文字に統一し、Bot名の指定を除去
     const command = text
       .split(/\s+/)[0]
       .split("@")[0]
@@ -61,17 +63,43 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    const reply = [
-      "🎭 MOJ — Contract Address",
-      "",
-      CONTRACT_ADDRESS,
-      "",
-      "📊 MOJ Chart",
-      CHART_URL,
-      "",
-      "⚡ MOJ / SUI",
-      "🚀 Henohenomoheji",
-    ].join("\n");
+    let reply;
+    let replyMarkup;
+
+    if (command === "/start" || command === "start") {
+      reply = [
+        "🎭 Welcome to HENOHENOMOHEJI (MOJ)!",
+        "",
+        "A community-driven token built on the Sui blockchain.",
+        "",
+        "⚡ Explore MOJ, check the contract address, view the chart, and buy MOJ on Turbos.",
+        "",
+        "🚀 Built on Sui · Community-driven · On-chain culture",
+      ].join("\n");
+
+      replyMarkup = {
+        inline_keyboard: [
+          [
+            {
+              text: "🚀 Open MOJ Mini App",
+              web_app: { url: MINI_APP_URL },
+            },
+          ],
+        ],
+      };
+    } else {
+      reply = [
+        "🎭 MOJ — Contract Address",
+        "",
+        CONTRACT_ADDRESS,
+        "",
+        "📊 MOJ Chart",
+        CHART_URL,
+        "",
+        "⚡ MOJ / SUI",
+        "🚀 Henohenomoheji",
+      ].join("\n");
+    }
 
     const response = await fetch(
       `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
@@ -83,6 +111,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           chat_id: message.chat.id,
           text: reply,
+          reply_markup: replyMarkup,
           disable_web_page_preview: true,
         }),
       }
@@ -98,11 +127,11 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ ok: true });
   } catch (error) {
-    console.error("Contract command error:", error.message);
+    console.error("Telegram command error:", error.message);
 
     return res.status(500).json({
       ok: false,
-      error: "Failed to process contract command",
+      error: "Failed to process Telegram command",
     });
   }
 }
