@@ -8,10 +8,10 @@ const CHART_URL =
   "https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
 const ALLOWED_COMMANDS = [
-  "/contract",
   "/ca",
-  "contract",
   "ca",
+  "/contract",
+  "contract",
 ];
 
 export default async function handler(req, res) {
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Telegram Webhook認証
     const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
     const receivedSecret =
       req.headers["x-telegram-bot-api-secret-token"];
@@ -50,6 +51,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // コマンドを小文字に統一し、Bot名の指定を除去
     const command = text
       .split(/\s+/)[0]
       .split("@")[0]
