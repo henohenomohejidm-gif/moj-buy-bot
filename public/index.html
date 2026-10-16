@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#10151f" />
+  <title>MOJ | Henohenomoheji</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10151f;
+      --panel: #1b2432;
+      --text: #f5f7fb;
+      --muted: #a7b2c4;
+      --accent: #8cf5c5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px 18px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { max-width: 440px; margin: 0 auto; }
+    .brand { text-align: center; padding: 24px 0; }
+    .logo { font-size: 48px; }
+    h1 { margin: 10px 0 6px; font-size: 28px; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .network {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 7px 12px;
+      border: 1px solid #334354;
+      border-radius: 99px;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid #2a3545;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .address {
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+    button, .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 48px;
+      padding: 13px 16px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button { margin-top: 14px; background: #303d50; color: white; }
+    .button { margin-top: 12px; background: var(--accent); color: #102019; }
+    .secondary { background: #303d50; color: white; }
+    .note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+    #status { text-align: center; min-height: 18px; color: var(--accent); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="brand">
+      <div class="logo">🎭</div>
+      <h1>HENOHENOMOHEJI</h1>
+      <div class="subtitle">Community-driven token</div>
+      <div class="network">◆ SUI MAINNET</div>
+    </header>
+
+    <section class="card">
+      <div class="label">MOJ Contract Address</div>
+      <div class="address" id="contract">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
+      <button id="copyButton" type="button">Copy Contract Address</button>
+      <div id="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <a class="button" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">📊 Open MOJ Chart</a>
+    <a class="button secondary" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">⚡ Buy MOJ on Turbos</a>
+
+    <p class="note">Henohenomoheji (MOJ) · Built on Sui</p>
+  </main>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    document.getElementById("copyButton").addEventListener("click", async () => {
+      const address = document.getElementById("contract").textContent;
+      const status = document.getElementById("status");
+
+      try {
+        if (tg?.WebAppClipboard?.writeText) {
+          await tg.WebAppClipboard.writeText(address);
+        } else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(address);
+        } else {
+          throw new Error("Clipboard unavailable");
+        }
+        status.textContent = "Contract address copied!";
+      } catch {
+        status.textContent = "Please copy the address manually.";
+      }
+    });
+  </script>
+</body>
+</html>
