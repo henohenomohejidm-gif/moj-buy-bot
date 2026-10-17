@@ -9,8 +9,54 @@ const DEFAULT_POOL_ID =
 function formatUsd(value) {
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 8,
+    maximumFractionDigits: 10,
   });
+}
+
+async function getPoolFields(poolId, graphqlUrl) {
+  const query = `
+    query {
+      object(address: "${poolId}") {
+        address
+        asMoveObject {
+          contents {
+            json
+          }
+        }
+      }
+    }
+  `;
+
+  const response = await fetch(graphqlUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Sui GraphQL failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  if (result.errors?.length) {
+    throw new Error(
+      `Sui GraphQL error: ${result.errors
+        .map((item) => item.message)
+        .join("; ")}`
+    );
+  }
+
+  const fields = result.data?.object?.asMoveObject?.contents?.json;
+
+  if (!fields) {
+    throw new Error("MOJ pool fields not found in GraphQL response");
+  }
+
+  return fields;
 }
 
 export default async function handler(req, res) {
@@ -27,50 +73,26 @@ export default async function handler(req, res) {
     });
   }
 
-  const authorization = req.headers.authorization || "";
-
-  if (authorization !== `Bearer ${secret}`) {
+  if (req.headers.authorization !== `Bearer ${secret}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {
     const poolId = process.env.MOJ_POOL_ID || DEFAULT_POOL_ID;
+    const graphqlUrl =
+      config.suiGraphqlUrl ||
+      "https://graphql.mainnet.sui.io/graphql";
 
-    const rpcResponse = await fetch(
-      process.env.SUI_RPC_URL || "https://fullnode.mainnet.sui.io:443",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "sui_getObject",
-          params: [
-            poolId,
-            { showContent: true },
-          ],
-        }),
-      }
-    );
-
-    if (!rpcResponse.ok) {
-      throw new Error(`Sui RPC failed: ${rpcResponse.status}`);
+    if (!/^0x[a-fA-F0-9]{64}$/.test(poolId)) {
+      throw new Error("Invalid MOJ_POOL_ID");
     }
 
-    const rpcData = await rpcResponse.json();
+    const fields = await getPoolFields(poolId, graphqlUrl);
 
-    if (rpcData.error) {
-      throw new Error(rpcData.error.message || "Sui RPC error");
-    }
-
-    const fields = rpcData.result?.data?.content?.fields;
-
-    if (!fields) {
-      throw new Error("Could not read MOJ pool fields");
-    }
-
-    const virtualSui = Number(fields.virtual_sui_reserves) / 1e9;
-    const virtualMoj = Number(fields.virtual_token_reserves) / 1e6;
+    const virtualSui =
+      Number(fields.virtual_sui_reserves) / 1e9;
+    const virtualMoj =
+      Number(fields.virtual_token_reserves) / 1e6;
 
     if (
       !Number.isFinite(virtualSui) ||
@@ -81,11 +103,9 @@ export default async function handler(req, res) {
       throw new Error("Invalid MOJ pool reserves");
     }
 
-    const suiPerMoj = virtualSui / virtualMoj;
     const suiUsd = await getSuiUsdPrice();
-    const mojUsd = suiPerMoj * suiUsd;
-    const totalSupply = config.mojTotalSupply;
-    const fdvUsd = mojUsd * totalSupply;
+    const mojUsd = (virtualSui / virtualMoj) * suiUsd;
+    const fdvUsd = mojUsd * config.mojTotalSupply;
 
     const message = [
       "📊 <b>MOJ MARKET</b>",
