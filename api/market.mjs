@@ -8,18 +8,36 @@ import {
 import { sendTelegramText } from "../lib/telegram.mjs";
 
 function formatUsd(value) {
-  return value.toLocaleString("en-US", {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "Not available";
+  }
+
+  return number.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 10,
   });
 }
 
 function formatTokenPrice(value) {
-  return value.toFixed(12).replace(/0+$/, "").replace(/\.$/, "");
+  const price = Number(value);
+
+  if (!Number.isFinite(price) || price <= 0) {
+    throw new Error("Invalid MOJ price value");
+  }
+
+  return price.toFixed(12).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 function formatPercent(value) {
-  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "Not available";
+  }
+
+  return `${number >= 0 ? "+" : ""}${number.toFixed(2)}%`;
 }
 
 export default async function handler(req, res) {
@@ -41,30 +59,57 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [mojUsd, volumeResult, changeResult] = await Promise.allSettled([
-      getMojUsdPrice(),
-      getMoj24hVolumeUsd(),
-      getMoj24hChangePercent(),
-    ]);
+    const [priceResult, volumeResult, changeResult] =
+      await Promise.allSettled([
+        getMojUsdPrice(),
+        getMoj24hVolumeUsd(),
+        getMoj24hChangePercent(),
+      ]);
 
-    if (mojUsd <= 0) {
-      throw new Error("Invalid MOJ price");
+    if (priceResult.status === "rejected") {
+      throw priceResult.reason;
     }
 
-    const fdvUsd = mojUsd * config.mojTotalSupply;
+    const mojUsd = Number(priceResult.value);
 
-    const volumeUsd =
-      volumeResult.status === "fulfilled" ? volumeResult.value : null;
-
-    const changePercent =
-      changeResult.status === "fulfilled" ? changeResult.value : null;
-
-    if (volumeResult.status === "rejected") {
-      console.error("MOJ 24H volume failed:", volumeResult.reason);
+    if (!Number.isFinite(mojUsd) || mojUsd <= 0) {
+      throw new Error("Invalid MOJ/USD price");
     }
 
-    if (changeResult.status === "rejected") {
-      console.error("MOJ 24H change failed:", changeResult.reason);
+    const totalSupply = Number(config.mojTotalSupply);
+
+    if (!Number.isFinite(totalSupply) || totalSupply <= 0) {
+      throw new Error("Invalid MOJ total supply configuration");
+    }
+
+    const fdvUsd = mojUsd * totalSupply;
+
+    let volumeUsd = null;
+    if (volumeResult.status === "fulfilled") {
+      const value = Number(volumeResult.value);
+
+      if (Number.isFinite(value) && value >= 0) {
+        volumeUsd = value;
+      }
+    } else {
+      console.error(
+        "MOJ 24H volume failed:",
+        volumeResult.reason?.message || volumeResult.reason
+      );
+    }
+
+    let changePercent = null;
+    if (changeResult.status === "fulfilled") {
+      const value = Number(changeResult.value);
+
+      if (Number.isFinite(value)) {
+        changePercent = value;
+      }
+    } else {
+      console.error(
+        "MOJ 24H change failed:",
+        changeResult.reason?.message || changeResult.reason
+      );
     }
 
     const message = [
@@ -73,10 +118,14 @@ export default async function handler(req, res) {
       `💰 Price: $${formatTokenPrice(mojUsd)}`,
       `📈 FDV (estimate): $${formatUsd(fdvUsd)}`,
       `📊 24H Volume: ${
-        volumeUsd === null ? "Not available" : `$${formatUsd(volumeUsd)}`
+        volumeUsd === null
+          ? "Not available"
+          : `$${formatUsd(volumeUsd)}`
       }`,
       `🔄 24H Change: ${
-        changePercent === null ? "Not available" : formatPercent(changePercent)
+        changePercent === null
+          ? "Not available"
+          : formatPercent(changePercent)
       }`,
       "",
       "MOJ • OFFICIAL MARKET DATA",
@@ -94,11 +143,14 @@ export default async function handler(req, res) {
       change24hPercent: changePercent,
     });
   } catch (error) {
-    console.error("MOJ market update failed:", error);
+    console.error(
+      "MOJ market update failed:",
+      error?.stack || error
+    );
 
     return res.status(500).json({
       error: "Market update failed",
-      details: error.message,
+      details: error?.message || String(error),
     });
   }
 }
