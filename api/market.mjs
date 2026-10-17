@@ -1,4 +1,4 @@
-
+// Trigger fresh Vercel deployment
 import { getConfig } from "../lib/config.mjs";
 import { getSuiUsdPrice } from "../lib/price.mjs";
 import { sendTelegramText } from "../lib/telegram.mjs";
