@@ -94,6 +94,7 @@ export default async function handler(req, res) {
         CONTRACT_ADDRESS,
         "",
         "📊 MOJ Chart",
+        "🌊 Trade MOJ on Turbos Finance",
         CHART_URL,
         "",
         "⚡ MOJ / SUI",
@@ -111,7 +112,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           chat_id: message.chat.id,
           text: reply,
-          reply_markup: replyMarkup,
+          ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
           disable_web_page_preview: true,
         }),
       }
