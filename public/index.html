@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -22,9 +23,7 @@
       --blue: #4f8cff;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -34,15 +33,8 @@
         "Segoe UI", sans-serif;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button {
-      font: inherit;
-      cursor: pointer;
-    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
 
     .app {
       max-width: 1100px;
@@ -64,9 +56,7 @@
       letter-spacing: .5px;
     }
 
-    .brand span {
-      color: var(--green);
-    }
+    .brand span { color: var(--green); }
 
     .status {
       color: var(--green);
@@ -81,9 +71,7 @@
       margin-bottom: 14px;
     }
 
-    .muted {
-      color: var(--muted);
-    }
+    .muted { color: var(--muted); }
 
     .price-label {
       color: var(--muted);
@@ -103,13 +91,8 @@
       font-size: 13px;
     }
 
-    .green {
-      color: var(--green);
-    }
-
-    .red {
-      color: var(--red);
-    }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
 
     .stats {
       display: grid;
@@ -137,9 +120,7 @@
       overflow-wrap: anywhere;
     }
 
-    .chart-panel {
-      padding: 14px;
-    }
+    .chart-panel { padding: 14px; }
 
     .chart-heading {
       display: flex;
@@ -175,10 +156,42 @@
       color: #8db5ff;
     }
 
-    #chart {
+    .indicator-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 5px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .indicator-value {
+      color: #c4b5fd;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-container {
       width: 100%;
-      height: 380px;
       position: relative;
+    }
+
+    #chart { height: 290px; }
+    #volumeChart { height: 100px; }
+    #rsiChart { height: 135px; }
+
+    .contract {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .contract code {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 11px;
     }
 
     .links {
@@ -207,21 +220,6 @@
       border-color: var(--green);
     }
 
-    .contract {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 12px;
-    }
-
-    .contract code {
-      flex: 1;
-      min-width: 0;
-      overflow-wrap: anywhere;
-      color: var(--muted);
-      font-size: 11px;
-    }
-
     .footer {
       color: var(--muted);
       font-size: 11px;
@@ -230,28 +228,17 @@
     }
 
     @media (max-width: 600px) {
-      .app {
-        padding: 12px;
-      }
-
-      .panel {
-        padding: 14px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      #chart {
-        height: 320px;
-      }
-
-      .links {
-        grid-template-columns: 1fr;
-      }
+      .app { padding: 12px; }
+      .panel { padding: 14px; }
+      .stats { grid-template-columns: 1fr; }
+      #chart { height: 260px; }
+      #volumeChart { height: 90px; }
+      #rsiChart { height: 125px; }
+      .links { grid-template-columns: 1fr; }
     }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header class="topbar">
@@ -269,12 +256,10 @@
           <div class="stat-label">FDV (TOTAL SUPPLY)</div>
           <div class="stat-value" id="marketCap">$—</div>
         </div>
-
         <div class="stat">
           <div class="stat-label">24H VOLUME</div>
           <div class="stat-value" id="volume24h">$—</div>
         </div>
-
         <div class="stat">
           <div class="stat-label">NETWORK</div>
           <div class="stat-value">Sui</div>
@@ -285,14 +270,28 @@
     <section class="panel chart-panel">
       <div class="chart-heading">
         <div class="chart-title">MOJ / USD CHART</div>
-
         <div class="chart-actions">
           <button class="chip active" id="btn5m" type="button">5M</button>
           <button class="chip" id="btn24h" type="button">24H</button>
         </div>
       </div>
 
-      <div id="chart"></div>
+      <!-- Main candlestick chart -->
+      <div id="chart" class="chart-container"></div>
+
+      <!-- Volume panel -->
+      <div class="indicator-heading">
+        <span>VOLUME</span>
+        <span class="muted">MOJ</span>
+      </div>
+      <div id="volumeChart" class="chart-container"></div>
+
+      <!-- RSI panel -->
+      <div class="indicator-heading">
+        <span>RSI (14)</span>
+        <span class="indicator-value" id="rsiValue">—</span>
+      </div>
+      <div id="rsiChart" class="chart-container"></div>
 
       <div class="contract">
         <code id="contractAddress">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</code>
@@ -306,47 +305,29 @@
       </div>
 
       <div class="links">
-        <a
-          class="link-button primary"
+        <a class="link-button primary"
           href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Buy MOJ ↗</a>
+          target="_blank" rel="noopener noreferrer">Buy MOJ ↗</a>
 
-        <a
-          class="link-button"
+        <a class="link-button"
           href="https://www.tradingview.com/chart/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >TradingView ↗</a>
+          target="_blank" rel="noopener noreferrer">TradingView ↗</a>
 
-        <a
-          class="link-button"
+        <a class="link-button"
           href="https://suivision.xyz/coin/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ"
-          target="_blank"
-          rel="noopener noreferrer"
-        >SuiVision ↗</a>
+          target="_blank" rel="noopener noreferrer">SuiVision ↗</a>
 
-        <a
-          class="link-button"
+        <a class="link-button"
           href="https://t.me/heno_henomoheji"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Telegram ↗</a>
+          target="_blank" rel="noopener noreferrer">Telegram ↗</a>
 
-        <a
-          class="link-button"
+        <a class="link-button"
           href="https://x.com/MOHEJI_MOJ"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Official X ↗</a>
+          target="_blank" rel="noopener noreferrer">Official X ↗</a>
 
-        <a
-          class="link-button"
+        <a class="link-button"
           href="https://moheji-website.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Official Website ↗</a>
+          target="_blank" rel="noopener noreferrer">Official Website ↗</a>
       </div>
     </section>
 
@@ -358,8 +339,9 @@
   </div>
 
   <script>
-        const API_URL = "/api/chart";
+    const API_URL = "/api/chart";
     const TOTAL_SUPPLY = 10000000000;
+    const RSI_PERIOD = 14;
 
     const CONTRACT =
       "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
@@ -367,19 +349,23 @@
     const $ = (id) => document.getElementById(id);
 
     let chart = null;
+    let volumeChart = null;
+    let rsiChart = null;
+
     let candleSeries = null;
     let volumeSeries = null;
+    let rsiSeries = null;
     let currentPriceLine = null;
+
     let lastCurrentPrice = null;
     let chartReady = false;
     let currentRange = "5m";
     let latestRequestId = 0;
     let refreshTimer = null;
+    let syncingRange = false;
 
     function formatPrice(price) {
-      if (!Number.isFinite(price) || price <= 0) {
-        return "$—";
-      }
+      if (!Number.isFinite(price) || price <= 0) return "$—";
 
       return "$" + price.toLocaleString("en-US", {
         maximumSignificantDigits: 8
@@ -387,9 +373,7 @@
     }
 
     function formatMoney(value) {
-      if (!Number.isFinite(value) || value < 0) {
-        return "$—";
-      }
+      if (!Number.isFinite(value) || value < 0) return "$—";
 
       return "$" + value.toLocaleString("en-US", {
         maximumFractionDigits: 2
@@ -398,29 +382,21 @@
 
     function setText(id, value) {
       const element = $(id);
-
-      if (element) {
-        element.textContent = value;
-      }
+      if (element) element.textContent = value;
     }
 
     function updatePriceLine(price) {
-      if (
-        !candleSeries ||
-        !Number.isFinite(price) ||
-        price <= 0
-      ) {
+      if (!candleSeries || !Number.isFinite(price) || price <= 0) {
         return;
       }
 
       try {
         if (currentPriceLine) {
           candleSeries.removePriceLine(currentPriceLine);
-          currentPriceLine = null;
         }
 
         currentPriceLine = candleSeries.createPriceLine({
-          price: price,
+          price,
           color: "#20d6a0",
           lineWidth: 2,
           lineStyle: 2,
@@ -439,15 +415,8 @@
 
       if (Number.isFinite(price) && price > 0) {
         lastCurrentPrice = price;
-
         setText("currentPrice", formatPrice(price));
-
-        // FDV estimate = token price × total supply.
-        setText(
-          "marketCap",
-          formatMoney(price * TOTAL_SUPPLY)
-        );
-
+        setText("marketCap", formatMoney(price * TOTAL_SUPPLY));
         updatePriceLine(price);
       }
 
@@ -457,77 +426,68 @@
 
       if (Number.isFinite(change)) {
         const sign = change > 0 ? "+" : "";
-
         setText(
           "priceChange",
           "24H Change: " + sign + change.toFixed(2) + "%"
         );
 
-        const changeElement = $("priceChange");
-
-        if (changeElement) {
-          changeElement.style.color =
-            change > 0
-              ? "#20d6a0"
-              : change < 0
-                ? "#ff647c"
-                : "";
+        const element = $("priceChange");
+        if (element) {
+          element.style.color = change > 0
+            ? "#20d6a0"
+            : change < 0
+              ? "#ff647c"
+              : "";
         }
       }
     }
 
     function normalizeCandles(items) {
-      if (!Array.isArray(items)) {
-        return [];
-      }
+      if (!Array.isArray(items)) return [];
 
-      const normalized = items
-        .map((item) => {
-          const rawTime = Number(
-            item.time ?? item.timestamp ?? item.t
-          );
+      const normalized = items.map((item) => {
+        const rawTime = Number(item.time ?? item.timestamp ?? item.t);
+        const open = Number(item.open ?? item.o);
+        const high = Number(item.high ?? item.h);
+        const low = Number(item.low ?? item.l);
+        const close = Number(item.close ?? item.c);
+        const rawVolume = Number(item.volume ?? item.v ?? 0);
 
-          const open = Number(item.open ?? item.o);
-          const high = Number(item.high ?? item.h);
-          const low = Number(item.low ?? item.l);
-          const close = Number(item.close ?? item.c);
-          const rawVolume = Number(item.volume ?? item.v ?? 0);
+        const time = rawTime > 100000000000
+          ? Math.floor(rawTime / 1000)
+          : Math.floor(rawTime);
 
-          const time = rawTime > 100000000000
-            ? Math.floor(rawTime / 1000)
-            : Math.floor(rawTime);
+        return {
+          time,
+          open,
+          high,
+          low,
+          close,
+          volume: Number.isFinite(rawVolume) && rawVolume >= 0
+            ? rawVolume
+            : 0
+        };
+      })
+      .filter((c) =>
+        Number.isFinite(c.time) &&
+        c.time > 0 &&
+        Number.isFinite(c.open) &&
+        Number.isFinite(c.high) &&
+        Number.isFinite(c.low) &&
+        Number.isFinite(c.close) &&
+        c.open > 0 &&
+        c.high > 0 &&
+        c.low > 0 &&
+        c.close > 0 &&
+        c.high >= c.low &&
+        c.high >= c.open &&
+        c.high >= c.close &&
+        c.low <= c.open &&
+        c.low <= c.close
+      )
+      .sort((a, b) => a.time - b.time);
 
-          return {
-            time,
-            open,
-            high,
-            low,
-            close,
-            volume: Number.isFinite(rawVolume) && rawVolume >= 0
-              ? rawVolume
-              : 0
-          };
-        })
-        .filter((candle) =>
-          Number.isFinite(candle.time) &&
-          candle.time > 0 &&
-          Number.isFinite(candle.open) &&
-          Number.isFinite(candle.high) &&
-          Number.isFinite(candle.low) &&
-          Number.isFinite(candle.close) &&
-          candle.open > 0 &&
-          candle.high > 0 &&
-          candle.low > 0 &&
-          candle.close > 0 &&
-          candle.high >= candle.low &&
-          candle.high >= candle.open &&
-          candle.high >= candle.close &&
-          candle.low <= candle.open &&
-          candle.low <= candle.close
-        )
-        .sort((a, b) => a.time - b.time);
-
-      // Keep only one candle for each timestamp.
+      // Keep one candle per timestamp.
       const unique = [];
 
       for (const candle of normalized) {
@@ -544,10 +504,117 @@
       return unique;
     }
 
-    function updateChart(items) {
-      if (!candleSeries || !volumeSeries || !chart) {
+    // Wilder's RSI calculation, using closing prices.
+    function calculateRSI(candles, period = RSI_PERIOD) {
+      if (candles.length <= period) return [];
+
+      const results = [];
+      let gainSum = 0;
+      let lossSum = 0;
+
+      for (let i = 1; i <= period; i++) {
+        const difference = candles[i].close - candles[i - 1].close;
+
+        if (difference > 0) {
+          gainSum += difference;
+        } else {
+          lossSum += Math.abs(difference);
+        }
+      }
+
+      let averageGain = gainSum / period;
+      let averageLoss = lossSum / period;
+
+      function rsiValue(gain, loss) {
+        if (gain === 0 && loss === 0) return 50;
+        if (loss === 0) return 100;
+        if (gain === 0) return 0;
+
+        const relativeStrength = gain / loss;
+        return 100 - 100 / (1 + relativeStrength);
+      }
+
+      results.push({
+        time: candles[period].time,
+        value: rsiValue(averageGain, averageLoss)
+      });
+
+      for (let i = period + 1; i < candles.length; i++) {
+        const difference = candles[i].close - candles[i - 1].close;
+        const gain = Math.max(difference, 0);
+        const loss = Math.max(-difference, 0);
+
+        averageGain =
+          (averageGain * (period - 1) + gain) / period;
+
+        averageLoss =
+          (averageLoss * (period - 1) + loss) / period;
+
+        results.push({
+          time: candles[i].time,
+          value: rsiValue(averageGain, averageLoss)
+        });
+      }
+
+      return results;
+    }
+
+    function updateRSI(candles) {
+      if (!rsiSeries) return;
+
+      const values = calculateRSI(candles);
+      rsiSeries.setData(values);
+
+      if (values.length === 0) {
+        setText("rsiValue", "Waiting for data…");
         return;
       }
+
+      const latest = values[values.length - 1].value;
+      setText("rsiValue", latest.toFixed(2));
+
+      const label = $("rsiValue");
+      if (label) {
+        label.style.color = latest >= 70
+          ? "#ff647c"
+          : latest <= 30
+            ? "#20d6a0"
+            : "#c4b5fd";
+      }
+    }
+
+    // Synchronize zoom and horizontal scrolling across all three charts.
+    function synchronizeTimeScales(sourceChart) {
+      if (syncingRange) return;
+
+      const range = sourceChart.timeScale().getVisibleLogicalRange();
+      if (!range) return;
+
+      syncingRange = true;
+
+      try {
+        for (const other of [chart, volumeChart, rsiChart]) {
+          if (other && other !== sourceChart) {
+            other.timeScale().setVisibleLogicalRange(range);
+          }
+        }
+      } catch (error) {
+        console.warn("Time scale synchronization failed:", error);
+      } finally {
+        syncingRange = false;
+      }
+    }
+
+    function connectTimeScales() {
+      for (const instance of [chart, volumeChart, rsiChart]) {
+        instance.timeScale().subscribeVisibleLogicalRangeChange(() => {
+          synchronizeTimeScales(instance);
+        });
+      }
+    }
+
+    function updateChart(items) {
+      if (!candleSeries || !volumeSeries || !rsiSeries) return;
 
       const candles = normalizeCandles(items);
 
@@ -556,31 +623,41 @@
         return;
       }
 
-      candleSeries.setData(
-        candles.map((candle) => ({
-          time: candle.time,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close
-        }))
-      );
+      candleSeries.setData(candles.map((c) => ({
+        time: c.time,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close
+      })));
 
-      volumeSeries.setData(
-        candles.map((candle) => ({
-          time: candle.time,
-          value: candle.volume,
-          color: candle.close >= candle.open
-            ? "rgba(32,214,160,0.55)"
-            : "rgba(255,100,124,0.55)"
-        }))
-      );
+      volumeSeries.setData(candles.map((c) => ({
+        time: c.time,
+        value: c.volume,
+        color: c.close >= c.open
+          ? "rgba(32,214,160,0.55)"
+          : "rgba(255,100,124,0.55)"
+      })));
+
+      updateRSI(candles);
 
       if (lastCurrentPrice !== null) {
         updatePriceLine(lastCurrentPrice);
       }
 
       chart.timeScale().fitContent();
+
+      const range = chart.timeScale().getVisibleLogicalRange();
+      if (range) {
+        syncingRange = true;
+        try {
+          volumeChart.timeScale().setVisibleLogicalRange(range);
+          rsiChart.timeScale().setVisibleLogicalRange(range);
+        } finally {
+          syncingRange = false;
+        }
+      }
+
       chartReady = true;
     }
 
@@ -596,20 +673,15 @@
         const response = await fetch(url, {
           method: "GET",
           cache: "no-store",
-          headers: {
-            Accept: "application/json"
-          }
+          headers: { Accept: "application/json" }
         });
 
         if (!response.ok) {
-          throw new Error(
-            "Chart API error: HTTP " + response.status
-          );
+          throw new Error("Chart API error: HTTP " + response.status);
         }
 
         const data = await response.json();
 
-        // Ignore a response if a newer request has started.
         if (
           requestId !== latestRequestId ||
           requestedRange !== currentRange
@@ -637,89 +709,55 @@
           updateChart(candles);
         } else {
           console.warn(
-            "The API returned no candle data for " +
-            requestedRange
+            "The API returned no candle data for " + requestedRange
           );
         }
       } catch (error) {
-        if (requestId !== latestRequestId) {
-          return;
-        }
+        if (requestId !== latestRequestId) return;
 
         console.error("MOJ chart refresh failed:", error);
 
         if (!chartReady) {
-          setText("currentPrice", "$—");
+          setText("rsiValue", "—");
         }
       }
     }
 
     function setChartRange(range) {
-      if (range !== "5m" && range !== "24h") {
-        return;
-      }
-
-      if (currentRange === range) {
-        return;
-      }
+      if (range !== "5m" && range !== "24h") return;
+      if (currentRange === range) return;
 
       currentRange = range;
       chartReady = false;
 
-      const button5m = $("btn5m");
-      const button24h = $("btn24h");
+      $("btn5m").classList.toggle("active", range === "5m");
+      $("btn24h").classList.toggle("active", range === "24h");
 
-      if (button5m) {
-        button5m.classList.toggle("active", range === "5m");
+      if (currentPriceLine && candleSeries) {
+        candleSeries.removePriceLine(currentPriceLine);
+        currentPriceLine = null;
       }
 
-      if (button24h) {
-        button24h.classList.toggle("active", range === "24h");
-      }
+      candleSeries.setData([]);
+      volumeSeries.setData([]);
+      rsiSeries.setData([]);
+      setText("rsiValue", "—");
 
-      if (chart) {
-        if (currentPriceLine && candleSeries) {
-          candleSeries.removePriceLine(currentPriceLine);
-          currentPriceLine = null;
-        }
+      const timeOptions = {
+        timeVisible: true,
+        secondsVisible: range === "5m"
+      };
 
-        if (candleSeries) {
-          candleSeries.setData([]);
-        }
+      chart.applyOptions({ timeScale: timeOptions });
+      volumeChart.applyOptions({ timeScale: timeOptions });
+      rsiChart.applyOptions({ timeScale: timeOptions });
 
-        if (volumeSeries) {
-          volumeSeries.setData([]);
-        }
-
-        chart.applyOptions({
-          timeScale: {
-            secondsVisible: range === "5m"
-          }
-        });
-      }
-
-      // Start a fresh request for the selected range.
       fetchChartData();
-    }
-
-    function copyContractAddress() {
-      const address = CONTRACT;
-
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(address)
-          .then(() => showCopySuccess())
-          .catch(() => fallbackCopy(address));
-      } else {
-        fallbackCopy(address);
-      }
     }
 
     function showCopySuccess() {
       const button = $("copyContract");
-
-      if (!button) {
-        return;
-      }
+      if (!button) return;
 
       button.textContent = "Copied!";
 
@@ -730,7 +768,6 @@
 
     function fallbackCopy(text) {
       const textarea = document.createElement("textarea");
-
       textarea.value = text;
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
@@ -750,53 +787,45 @@
         textarea.remove();
       }
     }
-        function initializeChart() {
-      const chartElement = $("chart");
 
-      if (!chartElement) {
-        console.error("Chart element not found.");
-        return;
+    function copyContractAddress() {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(CONTRACT)
+          .then(showCopySuccess)
+          .catch(() => fallbackCopy(CONTRACT));
+      } else {
+        fallbackCopy(CONTRACT);
       }
+    }
 
-      if (
-        typeof LightweightCharts === "undefined" ||
-        typeof LightweightCharts.createChart !== "function"
-      ) {
-        chartElement.textContent =
-          "Chart library failed to load. Please refresh the page.";
-
-        console.error("LightweightCharts is unavailable.");
-        return;
-      }
-
-      chart = LightweightCharts.createChart(chartElement, {
-        width: chartElement.clientWidth,
-        height: chartElement.clientHeight,
+    function createChartOptions(element, showTimeAxis = false) {
+      return {
+        width: element.clientWidth,
+        height: element.clientHeight,
 
         layout: {
-          background: {
-            color: "#10151f"
-          },
-          textColor: "#9ca3af"
+          background: { color: "#111722" },
+          textColor: "#9ca3af",
+          fontSize: 11
         },
 
         grid: {
-          vertLines: {
-            color: "rgba(148,163,184,0.08)"
-          },
-          horzLines: {
-            color: "rgba(148,163,184,0.08)"
-          }
+          vertLines: { color: "rgba(148,163,184,0.08)" },
+          horzLines: { color: "rgba(148,163,184,0.08)" }
         },
 
         rightPriceScale: {
-          borderColor: "rgba(148,163,184,0.2)"
+          borderColor: "rgba(148,163,184,0.2)",
+          minimumWidth: 68
         },
 
         timeScale: {
           borderColor: "rgba(148,163,184,0.2)",
           timeVisible: true,
-          secondsVisible: currentRange === "5m"
+          secondsVisible: currentRange === "5m",
+          visible: showTimeAxis,
+          rightOffset: 2,
+          barSpacing: 8
         },
 
         crosshair: {
@@ -805,64 +834,136 @@
 
         localization: {
           priceFormatter: (price) => formatPrice(price),
-
           timeFormatter: (time) => {
             if (typeof time === "number") {
               return new Date(time * 1000).toLocaleString("ja-JP");
             }
-
             return "";
           }
-        }
-      });
-
-      candleSeries = chart.addCandlestickSeries({
-        upColor: "#20d6a0",
-        downColor: "#ff647c",
-        borderUpColor: "#20d6a0",
-        borderDownColor: "#ff647c",
-        wickUpColor: "#20d6a0",
-        wickDownColor: "#ff647c"
-      });
-
-      volumeSeries = chart.addHistogramSeries({
-        priceFormat: {
-          type: "volume"
         },
-        priceScaleId: ""
+
+        handleScroll: true,
+        handleScale: true
+      };
+    }
+
+    function initializeChart() {
+      const mainElement = $("chart");
+      const volumeElement = $("volumeChart");
+      const rsiElement = $("rsiChart");
+
+      if (!mainElement || !volumeElement || !rsiElement) {
+        console.error("One or more chart containers are missing.");
+        return;
+      }
+
+      if (
+        typeof LightweightCharts === "undefined" ||
+        typeof LightweightCharts.createChart !== "function"
+      ) {
+        mainElement.textContent =
+          "Chart library failed to load. Please refresh the page.";
+        console.error("LightweightCharts is unavailable.");
+        return;
+      }
+
+      chart = LightweightCharts.createChart(
+        mainElement,
+        createChartOptions(mainElement, false)
+      );
+
+      volumeChart = LightweightCharts.createChart(
+        volumeElement,
+        createChartOptions(volumeElement, false)
+      );
+
+      rsiChart = LightweightCharts.createChart(
+        rsiElement,
+        createChartOptions(rsiElement, true)
+      );
+
+      // Hollow white candles for up moves, filled white for down moves.
+      candleSeries = chart.addCandlestickSeries({
+        upColor: "#111722",
+        downColor: "#e8edf5",
+        borderUpColor: "#e8edf5",
+        borderDownColor: "#e8edf5",
+        wickUpColor: "#e8edf5",
+        wickDownColor: "#e8edf5",
+        borderVisible: true,
+        wickVisible: true,
+        priceLineVisible: false
       });
 
-      volumeSeries.priceScale().applyOptions({
-        scaleMargins: {
-          top: 0.82,
-          bottom: 0
+      volumeSeries = volumeChart.addHistogramSeries({
+        priceFormat: { type: "volume" },
+        priceScaleId: "",
+        lastValueVisible: false,
+        priceLineVisible: false
+      });
+
+      volumeChart.priceScale("").applyOptions({
+        scaleMargins: { top: 0.08, bottom: 0.02 }
+      });
+
+      // RSI scale and line.
+      rsiSeries = rsiChart.addLineSeries({
+        color: "#c4b5fd",
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: true,
+        title: "RSI"
+      });
+
+      rsiChart.applyOptions({
+        rightPriceScale: {
+          borderColor: "rgba(148,163,184,0.2)",
+          scaleMargins: { top: 0.08, bottom: 0.08 }
         }
       });
+
+      // RSI reference levels: 70 / 50 / 30.
+      [
+        { price: 70, color: "rgba(255,100,124,0.8)", title: "70" },
+        { price: 50, color: "rgba(148,163,184,0.45)", title: "50" },
+        { price: 30, color: "rgba(32,214,160,0.8)", title: "30" }
+      ].forEach((level) => {
+        rsiSeries.createPriceLine({
+          price: level.price,
+          color: level.color,
+          lineWidth: 1,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: level.title
+        });
+      });
+
+      connectTimeScales();
+
+      // Resize all three chart panels together.
+      const resizeCharts = () => {
+        for (const [instance, element] of [
+          [chart, mainElement],
+          [volumeChart, volumeElement],
+          [rsiChart, rsiElement]
+        ]) {
+          if (instance && element) {
+            instance.applyOptions({
+              width: element.clientWidth,
+              height: element.clientHeight
+            });
+          }
+        }
+      };
 
       if (typeof ResizeObserver !== "undefined") {
-        const resizeObserver = new ResizeObserver(() => {
-          if (!chart || !chartElement) {
-            return;
-          }
-
-          chart.applyOptions({
-            width: chartElement.clientWidth,
-            height: chartElement.clientHeight
-          });
-        });
-
-        resizeObserver.observe(chartElement);
+        const observer = new ResizeObserver(resizeCharts);
+        observer.observe(mainElement);
+        observer.observe(volumeElement);
+        observer.observe(rsiElement);
       } else {
-        window.addEventListener("resize", () => {
-          if (!chart || !chartElement) {
-            return;
-          }
-
-          chart.applyOptions({
-            width: chartElement.clientWidth,
-            height: chartElement.clientHeight
-          });
-        });
+        window.addEventListener("resize", resizeCharts);
       }
     }
 
@@ -879,31 +980,15 @@
     }
 
     function initializeApp() {
-      const button5m = $("btn5m");
-      const button24h = $("btn24h");
-      const copyButton = $("copyContract");
-
-      if (button5m) {
-        button5m.addEventListener("click", () => {
-          setChartRange("5m");
-        });
-      }
-
-      if (button24h) {
-        button24h.addEventListener("click", () => {
-          setChartRange("24h");
-        });
-      }
-
-      if (copyButton) {
-        copyButton.addEventListener(
-          "click",
-          copyContractAddress
-        );
-      }
+      $("btn5m").addEventListener("click", () => setChartRange("5m"));
+      $("btn24h").addEventListener("click", () => setChartRange("24h"));
+      $("copyContract").addEventListener("click", copyContractAddress);
 
       initializeChart();
-      startAutoRefresh();
+
+      if (chart && volumeChart && rsiChart) {
+        startAutoRefresh();
+      }
     }
 
     if (document.readyState === "loading") {
