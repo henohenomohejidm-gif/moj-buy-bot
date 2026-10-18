@@ -1,63 +1,47 @@
-
-import {
-  getMojOhlc24h,
-  getMojUsdPrice
-} from "../lib/price.mjs";
+import { getMojOhlc24h, getMojUsdPrice } from '../lib/price.mjs';
+import { normalizeAndValidateCandles } from '../lib/chart-validation.mjs';
+import { analyzeCandleGaps } from '../lib/chart-gaps.mjs';
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
+
   try {
-    const [ohlc, currentPrice] = await Promise.all([
-      getMojOhlc24h(),
-      getMojUsdPrice()
-    ]);
+    const [providerRows, currentPrice] = await Promise.all([getMojOhlc24h(), getMojUsdPrice()]);
+    const { candles, diagnostics } = normalizeAndValidateCandles(providerRows);
 
-    // Calculate 24-hour volume from the same candle data.
-    const volume24h = ohlc.reduce((total, candle) => {
-      const volume = Number(candle?.volume_usd);
-
-      return Number.isFinite(volume) && volume >= 0
-        ? total + volume
-        : total;
-    }, 0);
-
-    // Calculate 24-hour change using candles with trades.
-    const tradedCandles = ohlc.filter(
-      (candle) => Number(candle?.count) > 0
-    );
-
-    let change24h = null;
-
-    if (tradedCandles.length > 0) {
-      const firstPrice = Number(tradedCandles[0]?.open_usd);
-      const lastPrice = Number(
-        tradedCandles[tradedCandles.length - 1]?.close_usd
-      );
-
-      if (
-        Number.isFinite(firstPrice) &&
-        firstPrice > 0 &&
-        Number.isFinite(lastPrice) &&
-        lastPrice > 0
-      ) {
-        change24h =
-          ((lastPrice - firstPrice) / firstPrice) * 100;
-      }
+    if (!candles.length) {
+      console.error('[MOJ chart] No usable candles after validation', diagnostics);
+      return res.status(502).json({ ok: false, error: 'No usable MOJ candle data returned', diagnostics });
+    }
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      return res.status(502).json({ ok: false, error: 'No usable current MOJ price returned' });
     }
 
+    const gaps = analyzeCandleGaps(candles, { intervalSeconds: 300, priceGapThresholdPct: 1 });
+    const volume24h = candles.reduce((sum, candle) => sum + (Number.isFinite(candle.volume) ? candle.volume : 0), 0);
+    const first = candles.find(candle => candle.volume > 0) ?? candles[0];
+    const last = [...candles].reverse().find(candle => candle.volume > 0) ?? candles[candles.length - 1];
+    const change24h = first.open > 0 ? ((last.close - first.open) / first.open) * 100 : null;
+
     return res.status(200).json({
-      success: true,
+      ok: true,
+      symbol: 'MOJ/USD',
+      interval: '5m',
       currentPrice,
-      price: currentPrice,
       change24h,
       volume24h,
-      candles: ohlc
+      candles,
+      quality: { ...diagnostics, ...gaps },
+      updatedAt: new Date().toISOString()
     });
   } catch (error) {
-    console.error("MOJ chart API error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: "Failed to load MOJ chart data"
-    });
+    console.error('[MOJ chart API]', error?.stack || error);
+    return res.status(502).json({ ok: false, error: 'Unable to load MOJ chart data. Check server logs for the upstream provider error.' });
   }
 }
