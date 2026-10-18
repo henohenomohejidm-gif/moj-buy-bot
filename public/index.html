@@ -26,9 +26,12 @@
       --yellow: #e8c66a;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       min-height: 100%;
       background: var(--bg);
@@ -38,13 +41,20 @@
       font-variant-numeric: tabular-nums;
     }
 
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
+    button {
+      font: inherit;
+    }
+
+    /* Keep the left edge aligned across desktop and mobile. */
     .app {
       width: min(1440px, 100%);
       margin: 0 auto;
-      padding: 22px;
+      padding: 16px;
     }
 
     .topbar {
@@ -60,11 +70,13 @@
       align-items: center;
       gap: 13px;
       min-width: 0;
+      flex-shrink: 0;
     }
 
+    /* Fixed logo dimensions on every screen size. */
     .logo {
-      width: 45px;
-      height: 45px;
+      width: 42px;
+      height: 42px;
       display: grid;
       place-items: center;
       flex-shrink: 0;
@@ -99,7 +111,8 @@
       gap: 9px;
     }
 
-    .status, .range-pill {
+    .status,
+    .range-pill {
       display: inline-flex;
       align-items: center;
       gap: 7px;
@@ -163,9 +176,17 @@
       font-size: 11px;
     }
 
-    .green { color: var(--green); }
-    .red { color: var(--red); }
-    .muted { color: var(--muted); }
+    .green {
+      color: var(--green);
+    }
+
+    .red {
+      color: var(--red);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
 
     .chart-panel {
       overflow: hidden;
@@ -243,6 +264,13 @@
     #chart {
       width: 100%;
       height: 100%;
+
+      /*
+       * Let Lightweight Charts process touch gestures.
+       * This may prevent normal page scrolling when a gesture
+       * starts directly over the chart.
+       */
+      touch-action: none;
     }
 
     .chart-message {
@@ -260,7 +288,9 @@
       pointer-events: none;
     }
 
-    .chart-message[hidden] { display: none; }
+    .chart-message[hidden] {
+      display: none;
+    }
 
     .chart-footer {
       display: flex;
@@ -306,7 +336,10 @@
       background: var(--panel2);
     }
 
-    .link-name { font-size: 12px; font-weight: 750; }
+    .link-name {
+      font-size: 12px;
+      font-weight: 750;
+    }
 
     .link-description {
       margin-top: 4px;
@@ -363,7 +396,9 @@
       font-weight: 800;
     }
 
-    .copy-btn:hover { background: #20d6a01c; }
+    .copy-btn:hover {
+      background: #20d6a01c;
+    }
 
     .footer {
       display: flex;
@@ -377,30 +412,114 @@
     }
 
     @media (max-width: 760px) {
-      .app { padding: 13px; }
-      .topbar { align-items: flex-start; }
-      .brand-title { font-size: 17px; }
-      .brand-subtitle { font-size: 9px; letter-spacing: 1px; }
-      .logo { width: 39px; height: 39px; }
-      .top-right { gap: 6px; }
-      .status, .range-pill { padding: 7px 8px; font-size: 9px; }
-      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-      .metric { padding: 13px; }
-      .metric-value { margin-top: 9px; font-size: 22px; }
-      .metric-note { font-size: 10px; }
-      .chart-toolbar { align-items: flex-start; padding: 13px; }
-      .legend { gap: 9px; font-size: 10px; }
-      #chart-wrap { height: 370px; }
-      .links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .link-card { padding: 12px; }
-      .link-name { font-size: 11px; }
+      /*
+       * Keep the same app padding and logo dimensions as desktop
+       * to prevent the top-left brand from shifting.
+       */
+      .topbar {
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand {
+        gap: 10px;
+      }
+
+      .brand-title {
+        font-size: 17px;
+        letter-spacing: 1px;
+      }
+
+      .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: .7px;
+      }
+
+      .top-right {
+        gap: 6px;
+      }
+
+      .status,
+      .range-pill {
+        padding: 7px 8px;
+        font-size: 9px;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .metric {
+        padding: 13px;
+      }
+
+      .metric-value {
+        margin-top: 9px;
+        font-size: 22px;
+      }
+
+      .metric-note {
+        font-size: 10px;
+      }
+
+      .chart-toolbar {
+        align-items: flex-start;
+        padding: 13px;
+      }
+
+      .legend {
+        gap: 9px;
+        font-size: 10px;
+      }
+
+      #chart-wrap {
+        height: 370px;
+      }
+
+      .links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .link-card {
+        padding: 12px;
+      }
+
+      .link-name {
+        font-size: 11px;
+      }
     }
 
-    @media (max-width: 390px) {
-      .topbar { flex-direction: column; }
-      .top-right { justify-content: flex-start; }
-      #chart-wrap { height: 340px; }
-      .contract-row { align-items: flex-start; flex-direction: column; }
+    @media (max-width: 480px) {
+      /*
+       * On narrow screens, stack the status below the brand,
+       * but keep the brand itself aligned to the same left edge.
+       */
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-right {
+        justify-content: flex-start;
+      }
+
+      .brand-title {
+        font-size: 17px;
+      }
+
+      .brand-subtitle {
+        letter-spacing: .5px;
+      }
+
+      #chart-wrap {
+        height: 340px;
+      }
+
+      .contract-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -415,6 +534,7 @@
           <div class="brand-subtitle">HENOHENOMOHEJI · SUI ECOSYSTEM</div>
         </div>
       </div>
+
       <div class="top-right">
         <div class="status">
           <span class="status-dot"></span>
@@ -430,16 +550,19 @@
         <div class="metric-value" id="price-value">—</div>
         <div class="metric-note">Latest available price</div>
       </article>
+
       <article class="metric">
         <div class="metric-label">FDV · USD</div>
         <div class="metric-value" id="fdv-value">—</div>
         <div class="metric-note">Price × 10B total supply</div>
       </article>
+
       <article class="metric">
         <div class="metric-label">24H VOLUME · USD</div>
         <div class="metric-value" id="volume-value">—</div>
         <div class="metric-note">Reported 24-hour volume</div>
       </article>
+
       <article class="metric">
         <div class="metric-label">24H CHANGE</div>
         <div class="metric-value" id="change-value">—</div>
@@ -453,17 +576,28 @@
           <h2>MOJ / USD</h2>
           <p>24H CANDLESTICK CHART · LIVE DATA</p>
         </div>
+
         <div class="legend">
-          <span class="legend-item"><span class="legend-box"></span>Candle</span>
-          <span class="legend-item"><span class="legend-line" style="background:#58a6ff"></span>MA 7</span>
-          <span class="legend-item"><span class="legend-line" style="background:#b59aff"></span>MA 25</span>
-          <span class="legend-item"><span class="legend-line" style="background:#e8c66a"></span>MA 99</span>
+          <span class="legend-item">
+            <span class="legend-box"></span>Candle
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#58a6ff"></span>MA 7
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#b59aff"></span>MA 25
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#e8c66a"></span>MA 99
+          </span>
         </div>
       </div>
 
       <div id="chart-wrap">
         <div id="chart"></div>
-        <div class="chart-message" id="chart-message">Loading MOJ market data…</div>
+        <div class="chart-message" id="chart-message">
+          Loading MOJ market data…
+        </div>
       </div>
 
       <div class="chart-footer">
@@ -475,28 +609,63 @@
     <h2 class="section-title">MOJ ECOSYSTEM</h2>
 
     <section class="links">
-      <a class="link-card" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">TradingView</div><div class="link-description">Charts & analysis</div></div>
+      <a class="link-card"
+         href="https://www.tradingview.com/chart/"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">TradingView</div>
+          <div class="link-description">Charts & analysis</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a class="link-card" href="https://app.turbos.finance/" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">Turbos Finance</div><div class="link-description">Trade on Sui</div></div>
+
+      <a class="link-card"
+         href="https://app.turbos.finance/"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">Turbos Finance</div>
+          <div class="link-description">Trade on Sui</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a class="link-card" href="https://suivision.xyz/" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">SuiVision</div><div class="link-description">Explore on-chain data</div></div>
+
+      <a class="link-card"
+         href="https://suivision.xyz/"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">SuiVision</div>
+          <div class="link-description">Explore on-chain data</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a class="link-card" href="https://t.me/heno_henomoheji" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">Telegram</div><div class="link-description">MOJ community</div></div>
+
+      <a class="link-card"
+         href="https://t.me/heno_henomoheji"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">Telegram</div>
+          <div class="link-description">MOJ community</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a class="link-card" href="https://x.com/MOHEJI_MOJ" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">Official X</div><div class="link-description">Project updates</div></div>
+
+      <a class="link-card"
+         href="https://x.com/MOHEJI_MOJ"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">Official X</div>
+          <div class="link-description">Project updates</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a class="link-card" href="https://moheji-website.vercel.app/" target="_blank" rel="noopener noreferrer">
-        <div><div class="link-name">Official Website</div><div class="link-description">About MOJ</div></div>
+
+      <a class="link-card"
+         href="https://moheji-website.vercel.app/"
+         target="_blank" rel="noopener noreferrer">
+        <div>
+          <div class="link-name">Official Website</div>
+          <div class="link-description">About MOJ</div>
+        </div>
         <span class="link-arrow">↗</span>
       </a>
     </section>
@@ -515,8 +684,9 @@
     </footer>
   </main>
 
-  <script>
+  <!-- Part 2 starts here: paste directly after this line. -->
 
+  <script>
     (() => {
       "use strict";
 
@@ -540,8 +710,6 @@
         white: "#f8fafc"
       };
 
-      // FIX: retain tiny token prices instead of rounding the axis to 0.00.
-      // Increase precision if MOJ's price has more than 12 decimal places.
       const TOKEN_PRICE_FORMAT = {
         type: "price",
         precision: 12,
@@ -607,12 +775,15 @@
         if (Math.abs(value) >= 1e12) {
           return "$" + (value / 1e12).toFixed(2) + "T";
         }
+
         if (Math.abs(value) >= 1e9) {
           return "$" + (value / 1e9).toFixed(2) + "B";
         }
+
         if (Math.abs(value) >= 1e6) {
           return "$" + (value / 1e6).toFixed(2) + "M";
         }
+
         if (Math.abs(value) >= 1e3) {
           return "$" + (value / 1e3).toFixed(2) + "K";
         }
@@ -624,6 +795,7 @@
 
       function formatChange(value) {
         if (!Number.isFinite(value)) return "—";
+
         return (value > 0 ? "+" : "") + value.toFixed(2) + "%";
       }
 
@@ -631,6 +803,7 @@
         connectionStatus.textContent = text;
 
         const dot = document.querySelector(".status-dot");
+
         if (dot) {
           dot.style.background = connected ? COLORS.green : COLORS.red;
           dot.style.boxShadow = connected
@@ -650,7 +823,9 @@
 
       function createChart() {
         if (!window.LightweightCharts) {
-          showChartMessage("Chart library failed to load. Please reload.");
+          showChartMessage(
+            "Chart library failed to load. Please reload."
+          );
           setStatus("CHART ERROR", false);
           return;
         }
@@ -724,11 +899,20 @@
             locale: "en-US"
           },
 
+          /*
+           * Desktop:
+           * - Mouse drag pans the chart.
+           * - Mouse wheel scrolls.
+           *
+           * Touch devices:
+           * - Horizontal swipe pans through time.
+           * - Vertical swipe adjusts the visible price range.
+           */
           handleScroll: {
             mouseWheel: true,
             pressedMouseMove: true,
             horzTouchDrag: true,
-            vertTouchDrag: false
+            vertTouchDrag: true
           },
 
           handleScale: {
@@ -738,8 +922,13 @@
           }
         });
 
-        // Hollow green bullish candles; white bearish bodies.
-        // Both candle directions have green borders and wicks.
+        /*
+         * Bullish candles:
+         * hollow dark body with green border and wick.
+         *
+         * Bearish candles:
+         * white body with green border and wick.
+         */
         candleSeries = chart.addCandlestickSeries({
           priceScaleId: "right",
           priceFormat: { ...TOKEN_PRICE_FORMAT },
@@ -785,7 +974,6 @@
           title: "MA 99"
         });
 
-        // Volume uses a separate scale from token price.
         volumeSeries = chart.addHistogramSeries({
           priceScaleId: "volume",
           priceFormat: { type: "volume" },
@@ -826,10 +1014,12 @@
       function resizeChart() {
         if (!chart) return;
 
-        chart.applyOptions({
-          width: chartElement.clientWidth,
-          height: chartElement.clientHeight
-        });
+        const width = chartElement.clientWidth;
+        const height = chartElement.clientHeight;
+
+        if (width > 0 && height > 0) {
+          chart.applyOptions({ width, height });
+        }
       }
 
       function normalizeTime(value) {
@@ -840,12 +1030,14 @@
           !/^\d+(\.\d+)?$/.test(value)
         ) {
           const milliseconds = Date.parse(value);
+
           return Number.isFinite(milliseconds)
             ? Math.floor(milliseconds / 1000)
             : null;
         }
 
         const number = Number(value);
+
         if (!Number.isFinite(number)) return null;
 
         return Math.floor(number > 1e12 ? number / 1000 : number);
@@ -860,13 +1052,18 @@
           if (!item || typeof item !== "object") continue;
 
           const time = normalizeTime(
-            item.time ?? item.timestamp ?? item.ts ?? item.date ?? item.t
+            item.time ??
+            item.timestamp ??
+            item.ts ??
+            item.date ??
+            item.t
           );
 
           const open = asNumber(item.open ?? item.o);
           const high = asNumber(item.high ?? item.h);
           const low = asNumber(item.low ?? item.l);
           const close = asNumber(item.close ?? item.c);
+
           const volume = asNumber(
             item.volume ?? item.vol ?? item.v
           ) ?? 0;
@@ -881,16 +1078,31 @@
             continue;
           }
 
+          /*
+           * Reject structurally invalid OHLC values.
+           * Do not reject a candle just because its wick is long:
+           * a long wick may represent a genuine market move.
+           */
           if (
-            open < 0 ||
-            high < 0 ||
-            low < 0 ||
-            close < 0 ||
+            open <= 0 ||
+            high <= 0 ||
+            low <= 0 ||
+            close <= 0 ||
+            high < Math.max(open, close) ||
+            low > Math.min(open, close) ||
             high < low
           ) {
+            console.warn(
+              "[MOJ Terminal] Invalid OHLC candle skipped:",
+              item
+            );
             continue;
           }
 
+          /*
+           * If timestamps are duplicated, keep the last record
+           * received for that timestamp.
+           */
           byTime.set(time, {
             time,
             open,
@@ -945,29 +1157,39 @@
       }
 
       function updateChart(candles) {
-        candleSeries.setData(candles.map((c) => ({
-          time: c.time,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close
-        })));
+        candleSeries.setData(
+          candles.map((c) => ({
+            time: c.time,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close
+          }))
+        );
 
         ma7Series.setData(calculateSMA(candles, 7));
         ma25Series.setData(calculateSMA(candles, 25));
         ma99Series.setData(calculateSMA(candles, 99));
 
-        volumeSeries.setData(candles.map((c) => ({
-          time: c.time,
-          value: c.volume,
-          color: c.close >= c.open ? "#20d6a055" : "#f8fafc55"
-        })));
+        volumeSeries.setData(
+          candles.map((c) => ({
+            time: c.time,
+            value: c.volume,
+            color: c.close >= c.open
+              ? "#20d6a055"
+              : "#f8fafc55"
+          }))
+        );
 
-        // Reapply autoscaling after updating candle data.
         chart.priceScale("right").applyOptions({
           autoScale: true
         });
 
+        /*
+         * Fit the initial chart once.
+         * Do not force-fit on every refresh, because that would
+         * interfere with a user's manual zoom and pan adjustments.
+         */
         if (!hasLoadedData) {
           chart.timeScale().fitContent();
         }
@@ -975,10 +1197,13 @@
 
       function setMetric(id, value, colorClass) {
         const element = $(id);
+
         element.textContent = value;
         element.classList.remove("green", "red");
 
-        if (colorClass) element.classList.add(colorClass);
+        if (colorClass) {
+          element.classList.add(colorClass);
+        }
       }
 
       function updateMetrics(data, candles) {
@@ -1038,21 +1263,27 @@
 
       async function fetchChartData() {
         if (requestInProgress) return;
+
         requestInProgress = true;
 
         try {
           const url = new URL(API_URL, window.location.origin);
+
           url.searchParams.set("range", FIXED_RANGE);
           url.searchParams.set("_", String(Date.now()));
 
           const response = await fetch(url.toString(), {
             method: "GET",
             cache: "no-store",
-            headers: { Accept: "application/json" }
+            headers: {
+              Accept: "application/json"
+            }
           });
 
           if (!response.ok) {
-            throw new Error("API returned HTTP " + response.status);
+            throw new Error(
+              "API returned HTTP " + response.status
+            );
           }
 
           const data = await response.json();
@@ -1061,14 +1292,20 @@
             throw new Error("Invalid API response");
           }
 
-          const candles = normalizeCandles(getCandlesFromResponse(data));
+          const candles = normalizeCandles(
+            getCandlesFromResponse(data)
+          );
 
           if (candles.length === 0) {
-            throw new Error("No valid candles found in API response");
+            throw new Error(
+              "No valid candles found in API response"
+            );
           }
 
-          // Diagnostic output: inspect these values in the browser console.
-          console.debug("[MOJ Terminal] Latest candles:", candles.slice(-3));
+          console.debug(
+            "[MOJ Terminal] Latest candles:",
+            candles.slice(-3)
+          );
 
           updateChart(candles);
           updateMetrics(data, candles);
@@ -1087,9 +1324,15 @@
 
           hideChartMessage();
         } catch (error) {
-          console.error("[MOJ Terminal] Data update failed:", error);
+          console.error(
+            "[MOJ Terminal] Data update failed:",
+            error
+          );
 
-          setStatus(hasLoadedData ? "RETRYING" : "API ERROR", false);
+          setStatus(
+            hasLoadedData ? "RETRYING" : "API ERROR",
+            false
+          );
 
           if (!hasLoadedData) {
             showChartMessage(
@@ -1109,9 +1352,11 @@
           button.textContent = "COPIED!";
         } catch (error) {
           const textArea = document.createElement("textarea");
+
           textArea.value = CONTRACT_ADDRESS;
           textArea.style.position = "fixed";
           textArea.style.opacity = "0";
+
           document.body.appendChild(textArea);
           textArea.select();
 
@@ -1124,7 +1369,10 @@
           }
 
           textArea.remove();
-          button.textContent = copied ? "COPIED!" : "COPY FAILED";
+
+          button.textContent = copied
+            ? "COPIED!"
+            : "COPY FAILED";
         }
 
         window.setTimeout(() => {
@@ -1134,9 +1382,11 @@
 
       function start() {
         createChart();
+
         if (!chart) return;
 
         fetchChartData();
+
         refreshTimer = window.setInterval(
           fetchChartData,
           REFRESH_INTERVAL
@@ -1148,8 +1398,13 @@
           window.clearInterval(refreshTimer);
         }
 
-        if (resizeObserver) resizeObserver.disconnect();
-        if (chart) chart.remove();
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+
+        if (chart) {
+          chart.remove();
+        }
       });
 
       start();
