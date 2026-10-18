@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0e14" />
+  <meta name="theme-color" content="#080b10" />
   <title>MOJ Terminal | Henohenomoheji</title>
 
   <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
@@ -12,22 +12,37 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b0e14;
-      --panel: #111620;
-      --border: #252d3a;
-      --text: #edf2f7;
-      --muted: #8b96a8;
+      --bg: #080b10;
+      --panel: #0d121a;
+      --panel2: #101722;
+      --border: #202c39;
+      --grid: #263442;
+      --text: #edf3f8;
+      --muted: #8291a3;
       --green: #20d6a0;
       --red: #ff647c;
+      --blue: #58a6ff;
+      --purple: #b59aff;
+      --yellow: #e8c66a;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
 
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
     }
 
     a {
@@ -35,132 +50,192 @@
       text-decoration: none;
     }
 
-    .page {
-      width: min(1180px, 100%);
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1440px, 100%);
       margin: 0 auto;
-      padding: 18px;
+      padding: 22px;
     }
 
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 22px;
     }
 
     .brand {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-
-    .brand span { color: var(--green); }
-
-    .status {
-      color: var(--muted);
-      font-size: 12px;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 13px;
+      min-width: 0;
     }
 
-    .dot {
+    .logo {
+      width: 45px;
+      height: 45px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border: 1px solid var(--green);
+      border-radius: 12px;
+      color: var(--green);
+      font-size: 22px;
+      font-weight: 900;
+      background: #0b1717;
+      box-shadow: 0 0 24px #20d6a012;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 850;
+      letter-spacing: 1.3px;
+    }
+
+    .brand-subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 1.7px;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.8px;
+    }
+
+    .status-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       background: var(--green);
-      display: inline-block;
+      box-shadow: 0 0 9px #20d6a080;
+    }
+
+    .range-pill {
+      padding: 8px 12px;
+      border: 1px solid #20d6a04d;
+      border-radius: 8px;
+      color: var(--green);
+      background: #20d6a00c;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
     }
 
     .metrics {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 14px;
     }
 
     .metric {
-      background: var(--panel);
+      min-width: 0;
+      padding: 17px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
-      min-width: 0;
+      background: var(--panel);
     }
 
     .metric-label {
       color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 8px;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
     }
 
     .metric-value {
-      font-size: clamp(17px, 2.5vw, 24px);
-      font-weight: 750;
+      margin-top: 11px;
       overflow-wrap: anywhere;
+      font-size: clamp(19px, 2.2vw, 29px);
+      font-weight: 800;
+      letter-spacing: -0.7px;
     }
 
-    .metric-sub {
+    .metric-note {
+      margin-top: 8px;
       color: var(--muted);
       font-size: 11px;
-      margin-top: 6px;
     }
 
-    .green { color: var(--green); }
-    .red { color: var(--red); }
+    .green {
+      color: var(--green);
+    }
 
-    .panel {
-      background: var(--panel);
+    .red {
+      color: var(--red);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .chart-panel {
+      overflow: hidden;
       border: 1px solid var(--border);
       border-radius: 12px;
-      overflow: hidden;
+      background: var(--bg);
     }
 
-    .chart-head {
+    .chart-toolbar {
+      min-height: 65px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       flex-wrap: wrap;
-      padding: 14px;
+      gap: 12px;
+      padding: 15px 18px;
       border-bottom: 1px solid var(--border);
+      background: var(--panel);
     }
 
-    .chart-title {
+    .chart-heading {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chart-heading h2 {
+      margin: 0;
       font-size: 14px;
-      font-weight: 750;
-    }
-
-    .chart-subtitle {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 4px;
-    }
-
-    .fixed-range {
-      background: rgba(32, 214, 160, 0.12);
-      color: var(--green);
-      border: 1px solid rgba(32, 214, 160, 0.3);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
     }
 
-    .chart-wrap { padding: 8px 8px 0; }
-
-    #chart {
-      height: 370px;
-      width: 100%;
+    .chart-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10px;
     }
 
     .legend {
       display: flex;
-      gap: 15px;
+      align-items: center;
       flex-wrap: wrap;
-      padding: 9px 14px 13px;
+      gap: 13px;
       color: var(--muted);
       font-size: 11px;
     }
@@ -172,715 +247,1107 @@
     }
 
     .legend-line {
-      width: 18px;
+      width: 15px;
       height: 3px;
-      border-radius: 2px;
-      display: inline-block;
+      border-radius: 3px;
     }
 
-    .error {
-      display: none;
-      margin: 0 14px 12px;
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 100, 124, 0.35);
-      border-radius: 8px;
-      color: var(--red);
+    .legend-box {
+      width: 10px;
+      height: 10px;
+      border: 1px solid var(--green);
+      background: var(--bg);
+    }
+
+    #chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      background: var(--bg);
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-message {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: var(--muted);
+      background: #080b10e8;
+      text-align: center;
       font-size: 12px;
-      overflow-wrap: anywhere;
+      pointer-events: none;
+    }
+
+    .chart-message[hidden] {
+      display: none;
+    }
+
+    .chart-footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 15px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 10px;
+      background: var(--panel);
+    }
+
+    .section-title {
+      margin: 25px 0 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.3px;
+      color: var(--muted);
     }
 
     .links {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      margin-top: 14px;
     }
 
-    .link-btn,
-    .copy-btn {
-      appearance: none;
-      border: 1px solid var(--border);
-      background: #171e2a;
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .link-btn {
+    .link-card {
       display: flex;
-      justify-content: center;
       align-items: center;
-      text-align: center;
-      min-height: 42px;
-    }
-
-    .link-btn:hover,
-    .copy-btn:hover {
-      border-color: #566176;
-      background: #202938;
-    }
-
-    .contract {
-      margin-top: 14px;
-      padding: 14px;
-      background: var(--panel);
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px;
+      min-width: 0;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 10px;
+      background: var(--panel);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .link-card:hover {
+      border-color: #20d6a080;
+      background: var(--panel2);
+    }
+
+    .link-name {
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .link-description {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .link-arrow {
+      color: var(--green);
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .contract-panel {
+      margin-top: 15px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
     }
 
     .contract-label {
+      margin-bottom: 9px;
       color: var(--muted);
-      font-size: 11px;
-      margin-bottom: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
     }
 
     .contract-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 10px;
     }
 
     .contract-address {
-      font-size: 12px;
-      color: #cbd5e1;
+      min-width: 0;
+      flex: 1;
       overflow-wrap: anywhere;
-      word-break: break-word;
-      line-height: 1.6;
+      color: #c9d5e2;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 9px 12px;
+      border: 1px solid #20d6a04d;
+      border-radius: 7px;
+      color: var(--green);
+      background: #20d6a00c;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .copy-btn:hover {
+      background: #20d6a01c;
     }
 
     .footer {
-      text-align: center;
-      color: #687386;
-      font-size: 11px;
-      padding: 18px 0 6px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+      padding: 15px 0 4px;
+      color: #667588;
+      font-size: 10px;
     }
 
-    @media (max-width: 650px) {
-      .page { padding: 12px; }
+    @media (max-width: 760px) {
+      .app {
+        padding: 13px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .brand-title {
+        font-size: 17px;
+      }
+
+      .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
+
+      .logo {
+        width: 39px;
+        height: 39px;
+      }
+
+      .top-right {
+        gap: 6px;
+      }
+
+      .status {
+        padding: 7px 8px;
+        font-size: 9px;
+      }
+
+      .range-pill {
+        padding: 7px 8px;
+        font-size: 9px;
+      }
 
       .metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
       }
 
-      .metric { padding: 12px; }
+      .metric {
+        padding: 13px;
+      }
 
-      #chart { height: 320px; }
+      .metric-value {
+        margin-top: 9px;
+        font-size: 22px;
+      }
+
+      .metric-note {
+        font-size: 10px;
+      }
+
+      .chart-toolbar {
+        align-items: flex-start;
+        padding: 13px;
+      }
+
+      .legend {
+        gap: 9px;
+        font-size: 10px;
+      }
+
+      #chart-wrap {
+        height: 370px;
+      }
 
       .links {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .link-card {
+        padding: 12px;
+      }
+
+      .link-name {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .topbar {
+        flex-direction: column;
+      }
+
+      .top-right {
+        justify-content: flex-start;
+      }
+
+      #chart-wrap {
+        height: 340px;
       }
 
       .contract-row {
         align-items: flex-start;
         flex-direction: column;
       }
-
-      .copy-btn { width: 100%; }
     }
   </style>
 </head>
 
 <body>
-  <main class="page">
+  <main class="app">
     <header class="topbar">
-      <div class="brand">MOJ <span>TERMINAL</span></div>
-      <div class="status">
-        <span class="dot"></span>
-        <span id="connectionStatus">Connecting...</span>
+      <div class="brand">
+        <div class="logo">MOJ</div>
+        <div>
+          <h1 class="brand-title">MOJ TERMINAL</h1>
+          <div class="brand-subtitle">HENOHENOMOHEJI · SUI ECOSYSTEM</div>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <div class="status">
+          <span class="status-dot"></span>
+          <span id="connection-status">CONNECTING</span>
+        </div>
+        <div class="range-pill">24H VIEW</div>
       </div>
     </header>
 
-    <section class="metrics">
-      <div class="metric">
-        <div class="metric-label">MOJ PRICE</div>
-        <div class="metric-value" id="price">$—</div>
-        <div class="metric-sub">Live price</div>
-      </div>
+    <section class="metrics" aria-label="Market overview">
+      <article class="metric">
+        <div class="metric-label">MOJ PRICE · USD</div>
+        <div class="metric-value" id="price-value">—</div>
+        <div class="metric-note">Latest available price</div>
+      </article>
 
-      <div class="metric">
-        <div class="metric-label">FDV</div>
-        <div class="metric-value" id="fdv">$—</div>
-        <div class="metric-sub">Price × 10B supply</div>
-      </div>
+      <article class="metric">
+        <div class="metric-label">FDV · USD</div>
+        <div class="metric-value" id="fdv-value">—</div>
+        <div class="metric-note">Price × 10B total supply</div>
+      </article>
 
-      <div class="metric">
-        <div class="metric-label">24H VOLUME</div>
-        <div class="metric-value" id="volume24h">$—</div>
-        <div class="metric-sub">Rolling 24 hours</div>
-      </div>
+      <article class="metric">
+        <div class="metric-label">24H VOLUME · USD</div>
+        <div class="metric-value" id="volume-value">—</div>
+        <div class="metric-note">Reported 24-hour volume</div>
+      </article>
 
-      <div class="metric">
+      <article class="metric">
         <div class="metric-label">24H CHANGE</div>
-        <div class="metric-value" id="change24h">—</div>
-        <div class="metric-sub">Price change</div>
-      </div>
+        <div class="metric-value" id="change-value">—</div>
+        <div class="metric-note">Reported 24-hour change</div>
+      </article>
     </section>
 
-    <section class="panel">
-      <div class="chart-head">
-        <div>
-          <div class="chart-title">MOJ / USD</div>
-          <div class="chart-subtitle">Candles · Volume · Moving Averages</div>
+    <section class="chart-panel">
+      <div class="chart-toolbar">
+        <div class="chart-heading">
+          <h2>MOJ / USD</h2>
+          <p>24H CANDLESTICK CHART · LIVE DATA</p>
         </div>
-        <div class="fixed-range">24H VIEW</div>
+
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-box"></span>
+            Candle
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#58a6ff"></span>
+            MA 7
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#b59aff"></span>
+            MA 25
+          </span>
+          <span class="legend-item">
+            <span class="legend-line" style="background:#e8c66a"></span>
+            MA 99
+          </span>
+        </div>
       </div>
 
-      <div class="chart-wrap">
+      <div id="chart-wrap">
         <div id="chart"></div>
+        <div class="chart-message" id="chart-message">
+          Loading MOJ market data…
+        </div>
       </div>
 
-      <div class="legend">
-        <span class="legend-item">
-          <span class="legend-line" style="background:#facc15"></span>
-          MA 7
-        </span>
-        <span class="legend-item">
-          <span class="legend-line" style="background:#9ca3af"></span>
-          MA 25
-        </span>
-        <span class="legend-item">
-          <span class="legend-line" style="background:#f8fafc"></span>
-          MA 99
-        </span>
-        <span class="legend-item">
-          <span class="legend-line" style="background:#20d6a0"></span>
-          Volume
-        </span>
+      <div class="chart-footer">
+        <span>TIMEFRAME: 24H · MA 7 / 25 / 99 · VOLUME</span>
+        <span id="last-updated">Waiting for data…</span>
       </div>
-
-      <div class="error" id="chartError"></div>
     </section>
 
-    <nav class="links">
-      <a class="link-btn" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener noreferrer">TradingView ↗</a>
-      <a class="link-btn" href="https://app.turbos.finance/" target="_blank" rel="noopener noreferrer">Turbos Buy MOJ ↗</a>
-      <a class="link-btn" href="https://suivision.xyz/" target="_blank" rel="noopener noreferrer">SuiVision ↗</a>
-      <a class="link-btn" href="https://t.me/heno_henomoheji" target="_blank" rel="noopener noreferrer">Telegram ↗</a>
-      <a class="link-btn" href="https://x.com/MOHEJI_MOJ" target="_blank" rel="noopener noreferrer">Official X ↗</a>
-      <a class="link-btn" href="https://moheji-website.vercel.app/" target="_blank" rel="noopener noreferrer">Official Website ↗</a>
-    </nav>
+    <h2 class="section-title">MOJ ECOSYSTEM</h2>
 
-    <section class="contract">
-      <div class="contract-label">MOJ CONTRACT ADDRESS</div>
+    <section class="links">
+      <a
+        class="link-card"
+        href="https://www.tradingview.com/chart/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">TradingView</div>
+          <div class="link-description">Charts & analysis</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a
+        class="link-card"
+        href="https://app.turbos.finance/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">Turbos Finance</div>
+          <div class="link-description">Trade on Sui</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a
+        class="link-card"
+        href="https://suivision.xyz/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">SuiVision</div>
+          <div class="link-description">Explore on-chain data</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a
+        class="link-card"
+        href="https://t.me/heno_henomoheji"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">Telegram</div>
+          <div class="link-description">MOJ community</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a
+        class="link-card"
+        href="https://x.com/MOHEJI_MOJ"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">Official X</div>
+          <div class="link-description">Project updates</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a
+        class="link-card"
+        href="https://moheji-website.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="link-name">Official Website</div>
+          <div class="link-description">About MOJ</div>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+    </section>
+
+    <section class="contract-panel">
+      <div class="contract-label">MOJ CONTRACT ADDRESS · SUI</div>
       <div class="contract-row">
-        <div class="contract-address" id="contractAddress">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
-        <button class="copy-btn" id="copyCA" type="button">Copy CA</button>
+        <div class="contract-address" id="contract-address">
+          0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ
+        </div>
+        <button class="copy-btn" id="copy-btn" type="button">
+          COPY CA
+        </button>
       </div>
     </section>
 
     <footer class="footer">
-      MOJ Terminal · Henohenomoheji
+      <span>MOJ TERMINAL · HENOHENOMOHEJI</span>
+      <span>Market data updates automatically</span>
     </footer>
   </main>
 
   <script>
-    "use strict";
+    (() => {
+      "use strict";
 
-    const API_URL = "/api/chart";
-    const FIXED_RANGE = "24h";
-    const TOTAL_SUPPLY = 10_000_000_000;
-    const REFRESH_INTERVAL = 30_000;
+      // Existing API endpoint — no API-side files need to be changed.
+      const API_URL = "/api/chart";
+      const FIXED_RANGE = "24h";
+      const TOTAL_SUPPLY = 10_000_000_000;
+      const REFRESH_INTERVAL = 30_000;
 
-    let chart = null;
-    let candleSeries = null;
-    let volumeSeries = null;
-    let ma7Series = null;
-    let ma25Series = null;
-    let ma99Series = null;
-    let currentPriceLine = null;
-    let lastCurrentPrice = null;
-    let chartReady = false;
-    let refreshInProgress = false;
+      const CONTRACT_ADDRESS =
+        "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
-    const $ = (id) => document.getElementById(id);
+      const COLORS = {
+        background: "#080b10",
+        text: "#aab8c8",
+        grid: "#263442",
+        green: "#20d6a0",
+        blue: "#58a6ff",
+        purple: "#b59aff",
+        yellow: "#e8c66a",
+        red: "#ff647c",
+        white: "#f8fafc"
+      };
 
-    function setText(id, value) {
-      const element = $(id);
-      if (element) element.textContent = value;
-    }
+      const $ = (id) => document.getElementById(id);
 
-    function showChartError(message) {
-      const element = $("chartError");
-      element.textContent = message;
-      element.style.display = "block";
-    }
+      const chartElement = $("chart");
+      const chartMessage = $("chart-message");
+      const connectionStatus = $("connection-status");
 
-    function clearChartError() {
-      const element = $("chartError");
-      element.textContent = "";
-      element.style.display = "none";
-    }
+      let chart = null;
+      let candleSeries = null;
+      let ma7Series = null;
+      let ma25Series = null;
+      let ma99Series = null;
+      let volumeSeries = null;
 
-    function formatUSD(value) {
-      const n = Number(value);
-      if (!Number.isFinite(n)) return "$—";
+      let refreshTimer = null;
+      let resizeObserver = null;
+      let requestInProgress = false;
+      let hasLoadedData = false;
 
-      if (n !== 0 && Math.abs(n) < 0.000001) {
-        return "$" + n.toExponential(4);
-      }
-
-      return "$" + n.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 8
-      });
-    }
-
-    function formatCompactUSD(value) {
-      const n = Number(value);
-      if (!Number.isFinite(n)) return "$—";
-
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        notation: "compact",
-        maximumFractionDigits: 2
-      }).format(n);
-    }
-
-    function formatPercent(value) {
-      const n = Number(value);
-      if (!Number.isFinite(n)) return "—";
-      return (n > 0 ? "+" : "") + n.toFixed(2) + "%";
-    }
-
-    function toUnixSeconds(value) {
-      if (typeof value === "number" && Number.isFinite(value)) {
-        return value > 1e12 ? Math.floor(value / 1000) : Math.floor(value);
-      }
-
-      if (typeof value === "string") {
-        const numeric = Number(value);
-
-        if (value.trim() !== "" && Number.isFinite(numeric)) {
-          return numeric > 1e12
-            ? Math.floor(numeric / 1000)
-            : Math.floor(numeric);
+      function asNumber(value) {
+        if (value === null || value === undefined || value === "") {
+          return null;
         }
 
-        const parsed = Date.parse(value);
-        if (Number.isFinite(parsed)) return Math.floor(parsed / 1000);
-      }
-
-      return null;
-    }
-
-    function normalizeCandles(items) {
-      if (!Array.isArray(items)) return [];
-
-      const result = [];
-
-      for (const item of items) {
-        if (!item || typeof item !== "object") continue;
-
-        const rawTime =
-          item.time ??
-          item.timestamp ??
-          item.ts ??
-          item.date ??
-          item.t;
-
-        const time = toUnixSeconds(rawTime);
-        const open = Number(item.open ?? item.o);
-        const high = Number(item.high ?? item.h);
-        const low = Number(item.low ?? item.l);
-        const close = Number(item.close ?? item.c);
-        const volume = Number(item.volume ?? item.vol ?? item.v ?? 0);
-
-        if (
-          time === null ||
-          !Number.isFinite(open) ||
-          !Number.isFinite(high) ||
-          !Number.isFinite(low) ||
-          !Number.isFinite(close)
-        ) {
-          continue;
+        if (typeof value === "object") {
+          return null;
         }
 
-        result.push({
-          time,
-          open,
-          high,
-          low,
-          close,
-          volume: Number.isFinite(volume) ? volume : 0
+        const number = Number(value);
+        return Number.isFinite(number) ? number : null;
+      }
+
+      function formatPrice(value) {
+        if (!Number.isFinite(value)) return "—";
+
+        if (value === 0) return "$0";
+
+        const abs = Math.abs(value);
+
+        if (abs >= 1000) {
+          return "$" + value.toLocaleString("en-US", {
+            maximumFractionDigits: 2
+          });
+        }
+
+        if (abs >= 1) {
+          return "$" + value.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 6
+          });
+        }
+
+        return "$" + value.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 10
         });
       }
 
-      result.sort((a, b) => a.time - b.time);
+      function formatCompactUSD(value) {
+        if (!Number.isFinite(value)) return "—";
 
-      // 同じ時刻のローソク足は重複させない
-      const unique = [];
+        const abs = Math.abs(value);
 
-      for (const candle of result) {
-        if (unique.length && unique[unique.length - 1].time === candle.time) {
-          unique[unique.length - 1] = candle;
-        } else {
-          unique.push(candle);
+        if (abs >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
+        if (abs >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
+        if (abs >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
+        if (abs >= 1e3) return "$" + (value / 1e3).toFixed(2) + "K";
+
+        return "$" + value.toLocaleString("en-US", {
+          maximumFractionDigits: 2
+        });
+      }
+
+      function formatChange(value) {
+        if (!Number.isFinite(value)) return "—";
+
+        const prefix = value > 0 ? "+" : "";
+        return prefix + value.toFixed(2) + "%";
+      }
+
+      function setStatus(text, connected) {
+        connectionStatus.textContent = text;
+
+        const dot = document.querySelector(".status-dot");
+        if (dot) {
+          dot.style.background = connected ? COLORS.green : COLORS.red;
+          dot.style.boxShadow = connected
+            ? "0 0 9px #20d6a080"
+            : "0 0 9px #ff647c80";
         }
       }
 
-      return unique;
-    }
+      function showChartMessage(message) {
+        chartMessage.textContent = message;
+        chartMessage.hidden = false;
+      }
 
-    // Simple Moving Average
-    function calculateSMA(candles, period) {
-      if (!Array.isArray(candles) || candles.length < period) {
+      function hideChartMessage() {
+        chartMessage.hidden = true;
+      }
+
+      function createChart() {
+        if (!window.LightweightCharts) {
+          showChartMessage("Chart library failed to load. Please reload the page.");
+          setStatus("CHART ERROR", false);
+          return;
+        }
+
+        chart = LightweightCharts.createChart(chartElement, {
+          width: chartElement.clientWidth || 800,
+          height: chartElement.clientHeight || 440,
+
+          layout: {
+            background: {
+              type: LightweightCharts.ColorType.Solid,
+              color: COLORS.background
+            },
+            textColor: COLORS.text,
+            fontFamily: "Inter, system-ui, sans-serif",
+            fontSize: 11
+          },
+
+          // Dotted grid on the dark background.
+          grid: {
+            vertLines: {
+              color: COLORS.grid,
+              style: LightweightCharts.LineStyle.Dotted,
+              visible: true
+            },
+            horzLines: {
+              color: COLORS.grid,
+              style: LightweightCharts.LineStyle.Dotted,
+              visible: true
+            }
+          },
+
+          crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+            vertLine: {
+              color: "#64748b",
+              width: 1,
+              style: LightweightCharts.LineStyle.Dashed,
+              labelBackgroundColor: "#1b2836"
+            },
+            horzLine: {
+              color: "#64748b",
+              width: 1,
+              style: LightweightCharts.LineStyle.Dashed,
+              labelBackgroundColor: "#1b2836"
+            }
+          },
+
+          rightPriceScale: {
+            borderColor: "#263442",
+            scaleMargins: {
+              top: 0.08,
+              bottom: 0.23
+            },
+            entireTextOnly: true
+          },
+
+          timeScale: {
+            borderColor: "#263442",
+            timeVisible: true,
+            secondsVisible: false,
+            rightOffset: 3,
+            barSpacing: 8,
+            minBarSpacing: 2,
+            fixLeftEdge: false,
+            fixRightEdge: false
+          },
+
+          localization: {
+            locale: "en-US"
+          },
+
+          handleScroll: {
+            mouseWheel: true,
+            pressedMouseMove: true,
+            horzTouchDrag: true,
+            vertTouchDrag: false
+          },
+
+          handleScale: {
+            axisPressedMouseMove: true,
+            mouseWheel: true,
+            pinch: true
+          }
+        });
+
+        // Bullish candles: hollow bodies with green borders and wicks.
+        // Bearish candles: white bodies with green borders and wicks.
+        candleSeries = chart.addCandlestickSeries({
+          upColor: COLORS.background,
+          borderUpColor: COLORS.green,
+          wickUpColor: COLORS.green,
+
+          downColor: COLORS.white,
+          borderDownColor: COLORS.green,
+          wickDownColor: COLORS.green,
+
+          borderVisible: true,
+          wickVisible: true,
+          priceLineVisible: false,
+          lastValueVisible: true
+        });
+
+        ma7Series = chart.addLineSeries({
+          color: COLORS.blue,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+          title: "MA 7"
+        });
+
+        ma25Series = chart.addLineSeries({
+          color: COLORS.purple,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+          title: "MA 25"
+        });
+
+        ma99Series = chart.addLineSeries({
+          color: COLORS.yellow,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+          title: "MA 99"
+        });
+
+        // Volume bars occupy the lower part of the chart.
+        volumeSeries = chart.addHistogramSeries({
+          priceScaleId: "volume",
+          priceFormat: {
+            type: "volume"
+          },
+          priceLineVisible: false,
+          lastValueVisible: false,
+          base: 0
+        });
+
+        chart.priceScale("volume").applyOptions({
+          scaleMargins: {
+            top: 0.82,
+            bottom: 0
+          },
+          visible: false,
+          borderVisible: false
+        });
+
+        if (typeof ResizeObserver !== "undefined") {
+          resizeObserver = new ResizeObserver((entries) => {
+            if (!chart) return;
+
+            for (const entry of entries) {
+              const width = Math.floor(entry.contentRect.width);
+              const height = Math.floor(entry.contentRect.height);
+
+              if (width > 0 && height > 0) {
+                chart.applyOptions({ width, height });
+              }
+            }
+          });
+
+          resizeObserver.observe(chartElement);
+        } else {
+          window.addEventListener("resize", resizeChart);
+        }
+      }
+
+      function resizeChart() {
+        if (!chart || !chartElement) return;
+
+        chart.applyOptions({
+          width: chartElement.clientWidth,
+          height: chartElement.clientHeight
+        });
+      }
+
+      function normalizeTime(value) {
+        if (value === null || value === undefined) return null;
+
+        if (typeof value === "string" && !/^\d+(\.\d+)?$/.test(value)) {
+          const milliseconds = Date.parse(value);
+          if (!Number.isFinite(milliseconds)) return null;
+          return Math.floor(milliseconds / 1000);
+        }
+
+        const number = Number(value);
+        if (!Number.isFinite(number)) return null;
+
+        // Timestamps in milliseconds are converted to seconds.
+        return Math.floor(number > 1e12 ? number / 1000 : number);
+      }
+
+      function normalizeCandles(rawCandles) {
+        if (!Array.isArray(rawCandles)) return [];
+
+        const candles = [];
+
+        for (const item of rawCandles) {
+          if (!item || typeof item !== "object") continue;
+
+          const time = normalizeTime(
+            item.time ??
+            item.timestamp ??
+            item.ts ??
+            item.date ??
+            item.t
+          );
+
+          const open = asNumber(item.open ?? item.o);
+          const high = asNumber(item.high ?? item.h);
+          const low = asNumber(item.low ?? item.l);
+          const close = asNumber(item.close ?? item.c);
+
+          const volume = asNumber(
+            item.volume ?? item.vol ?? item.v
+          ) ?? 0;
+
+          if (
+            time === null ||
+            open === null ||
+            high === null ||
+            low === null ||
+            close === null
+          ) {
+            continue;
+          }
+
+          if (
+            open < 0 ||
+            high < 0 ||
+            low < 0 ||
+            close < 0 ||
+            high < low
+          ) {
+            continue;
+          }
+
+          candles.push({
+            time,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.max(0, volume)
+          });
+        }
+
+        // Lightweight Charts requires unique, ascending timestamps.
+        const byTime = new Map();
+
+        for (const candle of candles) {
+          byTime.set(candle.time, candle);
+        }
+
+        return Array.from(byTime.values()).sort(
+          (a, b) => a.time - b.time
+        );
+      }
+
+      function calculateSMA(candles, period) {
+        const output = [];
+        let sum = 0;
+
+        for (let i = 0; i < candles.length; i++) {
+          sum += candles[i].close;
+
+          if (i >= period) {
+            sum -= candles[i - period].close;
+          }
+
+          if (i >= period - 1) {
+            output.push({
+              time: candles[i].time,
+              value: sum / period
+            });
+          }
+        }
+
+        return output;
+      }
+
+      function setMetric(id, value, colorClass) {
+        const element = $(id);
+        element.textContent = value;
+
+        element.classList.remove("green", "red");
+
+        if (colorClass) {
+          element.classList.add(colorClass);
+        }
+      }
+
+      function getCandlesFromResponse(data) {
+        // Supports common response shapes while keeping the API unchanged.
+        const candidates = [
+          data?.candles,
+          data?.data?.candles,
+          data?.chart,
+          data?.data,
+          data?.prices
+        ];
+
+        for (const candidate of candidates) {
+          if (Array.isArray(candidate)) return candidate;
+        }
+
         return [];
       }
 
-      const result = [];
-      let sum = 0;
+      async function fetchChartData() {
+        if (requestInProgress) return;
 
-      for (let i = 0; i < candles.length; i++) {
-        sum += candles[i].close;
+        requestInProgress = true;
 
-        if (i >= period) {
-          sum -= candles[i - period].close;
-        }
-
-        if (i >= period - 1) {
-          result.push({
-            time: candles[i].time,
-            value: sum / period
-          });
-        }
-      }
-
-      return result;
-    }
-
-    function updatePriceLine(price) {
-      if (!candleSeries || !Number.isFinite(Number(price))) return;
-
-      const value = Number(price);
-
-      if (currentPriceLine) {
         try {
-          candleSeries.removePriceLine(currentPriceLine);
-        } catch (_) {}
-      }
+          const url = new URL(API_URL, window.location.origin);
+          url.searchParams.set("range", FIXED_RANGE);
+          url.searchParams.set("_", String(Date.now()));
 
-      currentPriceLine = candleSeries.createPriceLine({
-        price: value,
-        color: "#20d6a0",
-        lineWidth: 1,
-        lineStyle: LightweightCharts.LineStyle.Dashed,
-        axisLabelVisible: true,
-        title: "PRICE"
-      });
-    }
-
-    function updateChart(items) {
-      if (
-        !candleSeries ||
-        !volumeSeries ||
-        !ma7Series ||
-        !ma25Series ||
-        !ma99Series
-      ) {
-        return;
-      }
-
-      const candles = normalizeCandles(items);
-
-      if (candles.length === 0) {
-        showChartError("チャートデータがありません。APIのレスポンスを確認してください。");
-        return;
-      }
-
-      clearChartError();
-
-      candleSeries.setData(
-        candles.map((c) => ({
-          time: c.time,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close
-        }))
-      );
-
-      volumeSeries.setData(
-        candles.map((c) => ({
-          time: c.time,
-          value: c.volume,
-          color: c.close >= c.open
-            ? "rgba(32,214,160,0.55)"
-            : "rgba(255,100,124,0.55)"
-        }))
-      );
-
-      // 3本のMAをローソク足に重ねる
-      ma7Series.setData(calculateSMA(candles, 7));
-      ma25Series.setData(calculateSMA(candles, 25));
-      ma99Series.setData(calculateSMA(candles, 99));
-
-      if (lastCurrentPrice !== null) {
-        updatePriceLine(lastCurrentPrice);
-      }
-
-      // 初回のみ全データが見える範囲に合わせる
-      if (!chartReady) {
-        chart.timeScale().fitContent();
-        chartReady = true;
-      }
-    }
-
-    function initializeChart() {
-      const container = $("chart");
-
-      chart = LightweightCharts.createChart(container, {
-        width: container.clientWidth,
-        height: container.clientHeight,
-
-        layout: {
-          background: { color: "#111620" },
-          textColor: "#8b96a8",
-          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-        },
-
-        grid: {
-          vertLines: { color: "#202735" },
-          horzLines: { color: "#202735" }
-        },
-
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal,
-          vertLine: {
-            color: "#657087",
-            width: 1,
-            style: LightweightCharts.LineStyle.Dashed,
-            labelBackgroundColor: "#293244"
-          },
-          horzLine: {
-            color: "#657087",
-            width: 1,
-            style: LightweightCharts.LineStyle.Dashed,
-            labelBackgroundColor: "#293244"
-          }
-        },
-
-        rightPriceScale: {
-          borderColor: "#293244",
-          scaleMargins: {
-            top: 0.08,
-            bottom: 0.25
-          }
-        },
-
-        timeScale: {
-          borderColor: "#293244",
-          timeVisible: true,
-          secondsVisible: false,
-          rightOffset: 3,
-          barSpacing: 8,
-          minBarSpacing: 2
-        },
-
-        localization: {
-          priceFormatter: (price) => formatUSD(price)
-        },
-
-        handleScroll: {
-          mouseWheel: true,
-          pressedMouseMove: true,
-          horzTouchDrag: true,
-          vertTouchDrag: false
-        },
-
-        handleScale: {
-          axisPressedMouseMove: true,
-          mouseWheel: true,
-          pinch: true
-        }
-      });
-
-      // ローソク足：上昇は中抜き、下落は塗りつぶし
-      candleSeries = chart.addCandlestickSeries({
-        upColor: "#111620",
-        downColor: "#f8fafc",
-        borderUpColor: "#f8fafc",
-        borderDownColor: "#f8fafc",
-        wickUpColor: "#f8fafc",
-        wickDownColor: "#f8fafc",
-        priceLineVisible: false,
-        lastValueVisible: true
-      });
-
-      // MA 7：黄色
-      ma7Series = chart.addLineSeries({
-        color: "#facc15",
-        lineWidth: 2,
-        title: "MA 7",
-        priceLineVisible: false,
-        lastValueVisible: true,
-        crosshairMarkerVisible: false
-      });
-
-      // MA 25：グレー
-      ma25Series = chart.addLineSeries({
-        color: "#9ca3af",
-        lineWidth: 2,
-        title: "MA 25",
-        priceLineVisible: false,
-        lastValueVisible: true,
-        crosshairMarkerVisible: false
-      });
-
-      // MA 99：白
-      ma99Series = chart.addLineSeries({
-        color: "#f8fafc",
-        lineWidth: 2,
-        title: "MA 99",
-        priceLineVisible: false,
-        lastValueVisible: true,
-        crosshairMarkerVisible: false
-      });
-
-      // 出来高：チャート下部の専用スケール
-      volumeSeries = chart.addHistogramSeries({
-        priceFormat: { type: "volume" },
-        priceScaleId: "volume",
-        lastValueVisible: false,
-        priceLineVisible: false,
-        base: 0
-      });
-
-      chart.priceScale("volume").applyOptions({
-        scaleMargins: {
-          top: 0.82,
-          bottom: 0
-        },
-        borderVisible: false
-      });
-
-      if ("ResizeObserver" in window) {
-        const resizeObserver = new ResizeObserver(() => {
-          if (!chart) return;
-
-          chart.applyOptions({
-            width: container.clientWidth,
-            height: container.clientHeight
+          const response = await fetch(url.toString(), {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+              Accept: "application/json"
+            }
           });
-        });
 
-        resizeObserver.observe(container);
-      } else {
-        window.addEventListener("resize", () => {
-          if (!chart) return;
+          if (!response.ok) {
+            throw new Error("API returned HTTP " + response.status);
+          }
 
-          chart.applyOptions({
-            width: container.clientWidth,
-            height: container.clientHeight
-          });
-        });
+          const data = await response.json();
+
+          if (!data || typeof data !== "object") {
+            throw new Error("Invalid API response");
+          }
+
+          const rawCandles = getCandlesFromResponse(data);
+          const candles = normalizeCandles(rawCandles);
+
+          if (candles.length === 0) {
+            throw new Error(
+              "No valid candles found in API response. Check the response field names."
+            );
+          }
+
+          updateChart(candles);
+          updateMetrics(data, candles);
+
+          hasLoadedData = true;
+          setStatus("LIVE", true);
+
+          $("last-updated").textContent =
+            "Updated " +
+            new Date().toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false
+            });
+
+          hideChartMessage();
+        } catch (error) {
+          console.error("[MOJ Terminal] Data update failed:", error);
+
+          setStatus(hasLoadedData ? "RETRYING" : "API ERROR", false);
+
+          if (!hasLoadedData) {
+            showChartMessage(
+              "Unable to load market data. Check /api/chart and its response format."
+            );
+          }
+        } finally {
+          requestInProgress = false;
+        }
       }
-    }
 
-    async function fetchChartData() {
-      if (refreshInProgress) return;
-
-      refreshInProgress = true;
-
-      try {
-        const url = new URL(API_URL, window.location.origin);
-
-        // 常に24H固定。切り替え操作は存在しない
-        url.searchParams.set("range", FIXED_RANGE);
-        url.searchParams.set("_", String(Date.now()));
-
-        const response = await fetch(url.toString(), {
-          method: "GET",
-          cache: "no-store",
-          headers: { Accept: "application/json" }
-        });
-
-        if (!response.ok) {
-          throw new Error("API request failed: HTTP " + response.status);
-        }
-
-        const data = await response.json();
-
-        if (!data || typeof data !== "object") {
-          throw new Error("APIレスポンスの形式が正しくありません。");
-        }
-
-        const price = Number(data.price);
-        const volume24h = Number(data.volume24h);
-        const change24h = Number(data.change24h);
-
-        if (Number.isFinite(price)) {
-          lastCurrentPrice = price;
-
-          setText("price", formatUSD(price));
-          setText("fdv", formatCompactUSD(price * TOTAL_SUPPLY));
-        }
-
-        if (Number.isFinite(volume24h)) {
-          setText("volume24h", formatCompactUSD(volume24h));
-        }
-
-        if (Number.isFinite(change24h)) {
-          const changeElement = $("change24h");
-
-          changeElement.textContent = formatPercent(change24h);
-          changeElement.classList.toggle("green", change24h >= 0);
-          changeElement.classList.toggle("red", change24h < 0);
-        }
-
-        const candles = Array.isArray(data.candles)
-          ? data.candles
-          : Array.isArray(data.data)
-            ? data.data
-            : [];
-
-        updateChart(candles);
-
-        setText(
-          "connectionStatus",
-          "Live · Updated " + new Date().toLocaleTimeString("ja-JP")
+      function updateChart(candles) {
+        candleSeries.setData(
+          candles.map((candle) => ({
+            time: candle.time,
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close
+          }))
         );
-      } catch (error) {
-        console.error("[MOJ Terminal]", error);
-        setText("connectionStatus", "Connection error");
 
-        showChartError(
-          "チャート更新に失敗しました: " +
-          (error && error.message ? error.message : String(error))
+        ma7Series.setData(calculateSMA(candles, 7));
+        ma25Series.setData(calculateSMA(candles, 25));
+        ma99Series.setData(calculateSMA(candles, 99));
+
+        volumeSeries.setData(
+          candles.map((candle) => ({
+            time: candle.time,
+            value: candle.volume,
+            color: candle.close >= candle.open
+              ? "#20d6a055"
+              : "#f8fafc55"
+          }))
         );
-      } finally {
-        refreshInProgress = false;
+
+        if (!hasLoadedData) {
+          chart.timeScale().fitContent();
+        }
       }
-    }
 
-    $("copyCA").addEventListener("click", async () => {
-      const address = $("contractAddress").textContent.trim();
+      function updateMetrics(data, candles) {
+        const latestCandle = candles[candles.length - 1];
 
-      try {
-        await navigator.clipboard.writeText(address);
-        setText("copyCA", "Copied!");
-        setTimeout(() => setText("copyCA", "Copy CA"), 1500);
-      } catch (error) {
-        console.error("Copy failed:", error);
-        setText("copyCA", "Copy failed");
-        setTimeout(() => setText("copyCA", "Copy CA"), 1500);
+        const price = asNumber(
+          data.price ??
+          data.currentPrice ??
+          data.current_price ??
+          data.tokenPrice ??
+          data.token_price
+        ) ?? latestCandle.close;
+
+        const volume = asNumber(
+          data.volume24h ??
+          data.volume_24h ??
+          data.vol24h ??
+          data.volume
+        );
+
+        let change = asNumber(
+          data.change24h ??
+          data.change_24h ??
+          data.priceChange24h ??
+          data.price_change_24h
+        );
+
+        // If the API does not provide a change figure, estimate it from
+        // the available candle data. This is only an estimate.
+        if (change === null && candles.length >= 2) {
+          const firstClose = candles[0].close;
+
+          if (firstClose > 0) {
+            change = ((latestCandle.close - firstClose) / firstClose) * 100;
+          }
+        }
+
+        setMetric("price-value", formatPrice(price));
+        setMetric(
+          "fdv-value",
+          Number.isFinite(price) ? formatCompactUSD(price * TOTAL_SUPPLY) : "—"
+        );
+        setMetric(
+          "volume-value",
+          volume === null ? "—" : formatCompactUSD(volume)
+        );
+        setMetric(
+          "change-value",
+          formatChange(change),
+          change === null ? null : change >= 0 ? "green" : "red"
+        );
       }
-    });
 
-    try {
-      initializeChart();
-      fetchChartData();
-      setInterval(fetchChartData, REFRESH_INTERVAL);
-    } catch (error) {
-      console.error("Chart initialization failed:", error);
-      setText("connectionStatus", "Chart error");
-      showChartError("チャート初期化エラー: " + error.message);
-    }
+      $("copy-btn").addEventListener("click", async () => {
+        const button = $("copy-btn");
+
+        try {
+          await navigator.clipboard.writeText(CONTRACT_ADDRESS);
+          button.textContent = "COPIED!";
+        } catch (error) {
+          // Fallback for browsers where Clipboard API is unavailable.
+          const textArea = document.createElement("textarea");
+          textArea.value = CONTRACT_ADDRESS;
+          textArea.style.position = "fixed";
+          textArea.style.opacity = "0";
+          document.body.appendChild(textArea);
+          textArea.select();
+
+          let copied = false;
+
+          try {
+            copied = document.execCommand("copy");
+          } catch (_) {
+            copied = false;
+          }
+
+          textArea.remove();
+          button.textContent = copied ? "COPIED!" : "COPY FAILED";
+        }
+
+        window.setTimeout(() => {
+          button.textContent = "COPY CA";
+        }, 1800);
+      });
+
+      function start() {
+        createChart();
+
+        if (!chart) return;
+
+        fetchChartData();
+
+        refreshTimer = window.setInterval(
+          fetchChartData,
+          REFRESH_INTERVAL
+        );
+      }
+
+      window.addEventListener("beforeunload", () => {
+        if (refreshTimer !== null) {
+          window.clearInterval(refreshTimer);
+        }
+
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+
+        if (chart) {
+          chart.remove();
+        }
+      });
+
+      start();
+    })();
   </script>
 </body>
 </html>
