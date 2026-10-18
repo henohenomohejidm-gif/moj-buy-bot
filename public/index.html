@@ -1,586 +1,176 @@
-
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#080b10">
-  <title>MOJ Terminal | Henohenomoheji</title>
-  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#10151f" />
+  <title>MOJ | Henohenomoheji</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #080b10;
-      --panel: #0e131c;
-      --border: #202b3a;
-      --text: #e8eef7;
-      --muted: #8290a4;
-      --green: #36e6a0;
-      --red: #ff657a;
-      --blue: #68a7ff;
+      --bg: #10151f;
+      --panel: #1b2432;
+      --text: #f5f7fb;
+      --muted: #a7b2c4;
+      --accent: #8cf5c5;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
+      padding: 28px 18px;
       min-height: 100vh;
-      background: radial-gradient(ellipse at 50% -15%, rgba(38,92,150,.19), transparent 55%), var(--bg);
+      background: var(--bg);
       color: var(--text);
-      font: 14px Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    a { color: inherit; text-decoration: none; }
-    button { color: inherit; font: inherit; }
-    .app { width: min(1180px, 100%); margin: 0 auto; padding: 20px 22px 34px; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:5px 0 22px; border-bottom:1px solid var(--border); }
-    .brand { display:flex; align-items:center; gap:12px; min-width:0; }
-    .brand-mark { display:grid; place-items:center; flex:0 0 44px; height:44px; border:1px solid #304258; border-radius:12px; background:linear-gradient(145deg,#18283b,#0c121c); color:var(--green); font-size:22px; font-weight:900; }
-    .brand-name { font-size:14px; font-weight:850; letter-spacing:.11em; }
-    .brand-sub { margin-top:4px; color:var(--muted); font-size:11px; letter-spacing:.08em; }
-    .network { display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid #244b3e; border-radius:999px; background:rgba(54,230,160,.06); color:#9aecc9; font-size:11px; font-weight:800; white-space:nowrap; }
-    .network-dot { width:7px; height:7px; border-radius:50%; background:var(--green); }
-    .hero { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:30px 0 24px; }
-    .eyebrow { color:var(--green); font-size:10px; font-weight:850; letter-spacing:.17em; }
-    h1 { margin:8px 0 6px; font-size:clamp(27px,4vw,40px); line-height:1.1; letter-spacing:-.045em; }
-    .subtitle { color:var(--muted); font-size:12px; }
-    .hero-price { min-width:0; text-align:right; }
-    .metric-label { color:var(--muted); font-size:10px; font-weight:750; letter-spacing:.12em; }
-    .price-value { margin-top:7px; font-size:clamp(20px,3vw,29px); font-weight:850; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-    .change { margin-top:5px; font-size:12px; font-weight:800; }
-    .positive { color:var(--green); }
-    .negative { color:var(--red); }
-    .neutral { color:var(--muted); }
-    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-    .metric-card { min-width:0; padding:17px; border:1px solid var(--border); border-radius:14px; background:linear-gradient(145deg,#111925,#0b1018); }
-    .metric-value { margin-top:10px; font-size:clamp(15px,2vw,21px); font-weight:800; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-    .metric-foot { margin-top:6px; color:var(--muted); font-size:10px; }
-    .panel { overflow:hidden; border:1px solid var(--border); border-radius:14px; background:rgba(12,17,25,.96); }
-    .panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:17px 18px; border-bottom:1px solid var(--border); }
-    .panel-title { font-size:13px; font-weight:850; letter-spacing:.04em; }
-    .panel-subtitle { margin-top:4px; color:var(--muted); font-size:10px; }
-    .chart-controls { display:flex; gap:6px; }
-    .range-btn { min-width:46px; padding:8px 11px; border:1px solid var(--border); border-radius:8px; background:#0b111a; color:var(--muted); font-size:11px; font-weight:800; cursor:pointer; }
-    .range-btn.active { border-color:#365d82; background:#14263a; color:#b8d9ff; }
-    .chart-wrap { min-height:320px; padding:8px 8px 0; }
-    #chart { width:100%; height:360px; }
-    .chart-status { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:11px 18px 14px; border-top:1px solid rgba(32,43,58,.7); color:var(--muted); font-size:10px; }
-    .status-left { display:flex; align-items:center; gap:7px; }
-    .status-indicator { width:6px; height:6px; border-radius:50%; background:var(--green); }
-    .links-panel { margin-top:16px; }
-    .links-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:15px; }
-    .action-link,.copy-btn { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:11px 12px; border:1px solid var(--border); border-radius:10px; background:#101722; color:var(--text); text-align:center; font-size:11px; font-weight:800; cursor:pointer; }
-    .action-link:hover,.copy-btn:hover { border-color:#3a526c; background:#162231; }
-    .action-link.primary { border-color:#276b54; background:rgba(31,121,87,.17); color:#8af0c2; }
-    .copy-btn { width:100%; }
-    .contract-panel { margin-top:16px; padding:18px; }
-    .contract-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-    .contract-address { padding:13px; border:1px solid var(--border); border-radius:9px; background:#080d14; color:#a7b8ce; font:11px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap:anywhere; user-select:text; }
-    .footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:24px 2px 0; color:#68768a; font-size:10px; }
-    .footer-brand { color:#a1aec0; font-weight:800; letter-spacing:.08em; }
-    @media(max-width:700px) {
-      .app { padding:14px 13px 26px; }
-      .topbar { padding-bottom:16px; }
-      .brand-mark { width:38px; height:38px; flex-basis:38px; }
-      .brand-name { font-size:11px; letter-spacing:.07em; }
-      .brand-sub { font-size:9px; }
-      .network { padding:8px 9px; font-size:9px; }
-      .hero { align-items:flex-start; flex-direction:column; gap:18px; padding:24px 0 20px; }
-      .hero-price { text-align:left; }
-      .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
-      .metric-card { padding:14px; }
-      .panel-head { padding:14px; }
-      .chart-wrap { min-height:290px; padding:4px 2px 0; }
-      #chart { height:310px; }
-      .links-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:11px; }
-      .action-link { min-height:42px; padding:10px 7px; font-size:10px; }
-      .contract-panel { padding:14px; }
+    main { max-width: 440px; margin: 0 auto; }
+    .brand { text-align: center; padding: 24px 0; }
+    .logo { font-size: 48px; }
+    h1 { margin: 10px 0 6px; font-size: 28px; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .network {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 7px 12px;
+      border: 1px solid #334354;
+      border-radius: 99px;
+      color: var(--accent);
+      font-size: 12px;
     }
+    .card {
+      background: var(--panel);
+      border: 1px solid #2a3545;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .address {
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+    button, .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 48px;
+      padding: 13px 16px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button { margin-top: 14px; background: #303d50; color: white; }
+    .button { margin-top: 12px; background: var(--accent); color: #102019; }
+    .secondary { background: #303d50; color: white; }
+    .note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+    #status { text-align: center; min-height: 18px; color: var(--accent); font-size: 13px; }
+    #authStatus { line-height: 1.6; overflow-wrap: anywhere; }
+    #authStatus strong { color: var(--accent); }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="MOJ Terminal home">
-        <div class="brand-mark">も</div>
-        <div>
-          <div class="brand-name">HENOHENOMOHEJI MOJ</div>
-          <div class="brand-sub">COMMUNITY-DRIVEN TOKEN</div>
-        </div>
-      </a>
-      <div class="network"><span class="network-dot"></span>SUI MAINNET</div>
+  <main>
+    <header class="brand">
+      <div class="logo">🎭</div>
+      <h1>HENOHENOMOHEJI</h1>
+      <div class="subtitle">Community-driven token</div>
+      <div class="network">◆ SUI MAINNET</div>
     </header>
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">MOJ / SUI</div>
-          <h1>MOJ Terminal</h1>
-          <div class="subtitle">Henohenomoheji · Live market overview</div>
-        </div>
-        <div class="hero-price">
-          <div class="metric-label">MOJ Price (USD)</div>
-          <div class="price-value" id="price">$—</div>
-          <div class="change neutral" id="price-change">24H —</div>
-        </div>
-      </section>
-      <section class="metrics" aria-label="Market statistics">
-        <article class="metric-card">
-          <div class="metric-label">Market Cap / FDV</div>
-          <div class="metric-value" id="fdv">$—</div>
-          <div class="metric-foot">Based on total supply</div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-label">24H Volume</div>
-          <div class="metric-value" id="volume">$—</div>
-          <div class="metric-foot">Reported trading volume</div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-label">24H High</div>
-          <div class="metric-value" id="high">$—</div>
-          <div class="metric-foot">Latest 24-hour window</div>
-        </article>
-        <article class="metric-card">
-          <div class="metric-label">24H Low</div>
-          <div class="metric-value" id="low">$—</div>
-          <div class="metric-foot">Latest 24-hour window</div>
-        </article>
-      </section>
-      <section class="panel" aria-label="MOJ price chart">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">MOJ PRICE CHART</div>
-            <div class="panel-subtitle">Candlesticks · USD</div>
-          </div>
-          <div class="chart-controls">
-            <button class="range-btn" id="range-5m" type="button">5M</button>
-            <button class="range-btn active" id="range-24h" type="button">24H</button>
-          </div>
-        </div>
-        <div class="chart-wrap"><div id="chart"></div></div>
-        <div class="chart-status">
-          <div class="status-left">
-            <span class="status-indicator" id="status-indicator"></span>
-            <span id="chart-status-text">Connecting to market data…</span>
-          </div>
-          <span id="last-updated">Last updated: —</span>
-        </div>
-      </section>
-      <section class="panel links-panel">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">MOJ ECOSYSTEM</div>
-            <div class="panel-subtitle">Trade, track and join the community</div>
-          </div>
-        </div>
-        <div class="links-grid">
-          <a class="action-link primary" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">↗ Buy MOJ</a>
-          <a class="action-link" href="https://suivision.xyz/coin/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">◈ SuiVision</a>
-          <a class="action-link" href="https://t.me/heno_henomoheji" target="_blank" rel="noopener noreferrer">➤ Telegram</a>
-          <a class="action-link" href="https://x.com/MOHEJI_MOJ" target="_blank" rel="noopener noreferrer">𝕏 Official X</a>
-          <a class="action-link" href="https://moheji-website.vercel.app/" target="_blank" rel="noopener noreferrer">⌂ Official Website</a>
-          <a class="action-link" href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">↗ TradingView</a>
-        </div>
-      </section>
-      <section class="panel contract-panel">
-        <div class="contract-head">
-          <div>
-            <div class="panel-title">CONTRACT ADDRESS</div>
-            <div class="panel-subtitle">Sui Mainnet · MOJ Coin Type</div>
-          </div>
-        </div>
-        <div class="contract-address" id="contract-address">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
-        <div style="margin-top:10px">
-          <button class="copy-btn" id="copy-btn" type="button">COPY CA</button>
-        </div>
-      </section>
-    </main>
-    <footer class="footer">
-      <span class="footer-brand">HENOHENOMOHEJI (MOJ)</span>
-      <span>Market data may be delayed · Sui Mainnet</span>
-    </footer>
-  </div>
-  <!-- Part 2 starts here -->
 
-<script>
-(() => {
-  "use strict";
+    <section class="card" aria-live="polite">
+      <div class="label">Telegram User Authentication</div>
+      <div id="authStatus">Checking Telegram authentication…</div>
+    </section>
 
-  const CONTRACT_ADDRESS =
-    "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
-  const TOTAL_SUPPLY = 10_000_000_000;
-  const REFRESH_MS = 30_000;
-  const API_URL = "/api/chart";
+    <section class="card">
+      <div class="label">MOJ Contract Address</div>
+      <div class="address" id="contract">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
+      <button id="copyButton" type="button">Copy Contract Address</button>
+      <div id="status" role="status" aria-live="polite"></div>
+    </section>
 
-  const el = (id) => document.getElementById(id);
-  const chartEl = el("chart");
+    <a class="button" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">📊 Open MOJ Chart</a>
+    <a class="button secondary" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">⚡ Buy MOJ on Turbos</a>
 
-  let chart = null;
-  let candlesSeries = null;
-  let volumeSeries = null;
-  let currentRange = "24h";
-  let refreshTimer = null;
-  let requestController = null;
-  let lastCandles = [];
-  let lastPayload = null;
+    <p class="note">Henohenomoheji (MOJ) · Built on Sui</p>
+  </main>
 
-  const numberOrNull = (value) => {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-  };
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
 
-  function formatPrice(value) {
-    const n = numberOrNull(value);
-    if (n === null || n <= 0) return "$—";
-    if (n >= 1) return "$" + n.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6
-    });
-    if (n >= 0.0001) return "$" + n.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
-    return "$" + n.toExponential(4);
-  }
+    const authStatus = document.getElementById("authStatus");
 
-  function formatMoney(value) {
-    const n = numberOrNull(value);
-    if (n === null || n < 0) return "$—";
-    if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
-    if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
-    if (n >= 1e3) return "$" + (n / 1e3).toFixed(2) + "K";
-    return "$" + n.toLocaleString("en-US", {
-      maximumFractionDigits: 2
-    });
-  }
+    async function verifyTelegramUser() {
+      const initData = tg?.initData;
 
-  function setStatus(message, ok = true) {
-    el("chart-status-text").textContent = message;
-    el("status-indicator").style.background = ok ? "var(--green)" : "var(--red)";
-  }
-
-  function createChart() {
-    if (!window.LightweightCharts || !chartEl) {
-      setStatus("Chart library failed to load", false);
-      return;
-    }
-
-    chart = LightweightCharts.createChart(chartEl, {
-      width: chartEl.clientWidth || 600,
-      height: chartEl.clientHeight || 360,
-      layout: {
-        background: { color: "#0c1119" },
-        textColor: "#8290a4",
-        fontFamily: "Inter, system-ui, sans-serif"
-      },
-      grid: {
-        vertLines: { color: "rgba(32,43,58,.45)" },
-        horzLines: { color: "rgba(32,43,58,.65)" }
-      },
-      rightPriceScale: {
-        borderColor: "#202b3a",
-        scaleMargins: { top: 0.12, bottom: 0.22 }
-      },
-      timeScale: {
-        borderColor: "#202b3a",
-        timeVisible: true,
-        secondsVisible: false,
-        rightOffset: 3
-      },
-      crosshair: {
-        vertLine: { color: "#46617d", labelBackgroundColor: "#203249" },
-        horzLine: { color: "#46617d", labelBackgroundColor: "#203249" }
-      },
-      handleScroll: true,
-      handleScale: true
-    });
-
-    candlesSeries = chart.addCandlestickSeries({
-      upColor: "#36e6a0",
-      downColor: "#ff657a",
-      borderUpColor: "#36e6a0",
-      borderDownColor: "#ff657a",
-      wickUpColor: "#36e6a0",
-      wickDownColor: "#ff657a",
-      priceLineColor: "#68a7ff",
-      lastValueVisible: true
-    });
-
-    volumeSeries = chart.addHistogramSeries({
-      priceFormat: { type: "volume" },
-      priceScaleId: "",
-      lastValueVisible: false,
-      priceLineVisible: false
-    });
-
-    chart.priceScale("").applyOptions({
-      scaleMargins: { top: 0.82, bottom: 0 }
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (chart && chartEl.clientWidth > 0) {
-        chart.applyOptions({
-          width: chartEl.clientWidth,
-          height: chartEl.clientHeight || 360
-        });
-      }
-    });
-
-    resizeObserver.observe(chartEl);
-  }
-
-  function normalizeTime(value) {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return value > 1e12 ? Math.floor(value / 1000) : Math.floor(value);
-    }
-
-    if (typeof value === "string") {
-      const numeric = Number(value);
-      if (value.trim() !== "" && Number.isFinite(numeric)) {
-        return numeric > 1e12 ? Math.floor(numeric / 1000) : Math.floor(numeric);
+      if (!initData) {
+        authStatus.textContent =
+          "Open this Mini App from Telegram to verify your account.";
+        return;
       }
 
-      const parsed = Date.parse(value);
-      if (Number.isFinite(parsed)) return Math.floor(parsed / 1000);
-    }
+      authStatus.textContent = "Verifying Telegram account…";
 
-    return null;
-  }
-
-  function normalizeCandle(item) {
-    if (!item || typeof item !== "object") return null;
-
-    const time = normalizeTime(
-      item.time ?? item.timestamp ?? item.t ?? item.startTime ??
-      item.openTime ?? item.bucket ?? item.date
-    );
-
-    const open = numberOrNull(item.open ?? item.o);
-    const high = numberOrNull(item.high ?? item.h);
-    const low = numberOrNull(item.low ?? item.l);
-    const close = numberOrNull(item.close ?? item.c);
-    const volume = numberOrNull(
-      item.volume ?? item.vol ?? item.v ?? item.volumeUsd ?? item.quoteVolume
-    );
-
-    if (
-      time === null ||
-      open === null || high === null ||
-      low === null || close === null ||
-      open <= 0 || high <= 0 || low <= 0 || close <= 0
-    ) {
-      return null;
-    }
-
-    return {
-      candle: {
-        time,
-        open,
-        high: Math.max(high, open, close),
-        low: Math.min(low, open, close),
-        close
-      },
-      volume: Math.max(0, volume ?? 0)
-    };
-  }
-
-  function extractCandles(payload) {
-    if (Array.isArray(payload)) return payload;
-
-    if (!payload || typeof payload !== "object") return [];
-
-    const candidates = [
-      payload.candles,
-      payload.data,
-      payload.items,
-      payload.ohlcv,
-      payload.result,
-      payload.chart
-    ];
-
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate)) return candidate;
-
-      if (candidate && typeof candidate === "object") {
-        for (const key of ["candles", "data", "items", "ohlcv"]) {
-          if (Array.isArray(candidate[key])) return candidate[key];
-        }
-      }
-    }
-
-    return [];
-  }
-
-  function normalizeCandles(payload) {
-    const normalized = extractCandles(payload)
-      .map(normalizeCandle)
-      .filter(Boolean)
-      .sort((a, b) => a.candle.time - b.candle.time);
-
-    const unique = new Map();
-    for (const item of normalized) {
-      unique.set(item.candle.time, item);
-    }
-
-    return Array.from(unique.values());
-  }
-
-  function updateMetrics(candles, payload) {
-    if (!candles.length) return;
-
-    const first = candles[0].candle;
-    const last = candles[candles.length - 1].candle;
-    const highs = candles.map((item) => item.candle.high);
-    const lows = candles.map((item) => item.candle.low);
-
-    const change = first.open > 0
-      ? ((last.close - first.open) / first.open) * 100
-      : null;
-
-    el("price").textContent = formatPrice(last.close);
-    el("fdv").textContent = formatMoney(last.close * TOTAL_SUPPLY);
-
-    const changeEl = el("price-change");
-    if (change === null) {
-      changeEl.textContent = "24H —";
-      changeEl.className = "change neutral";
-    } else {
-      changeEl.textContent = "24H " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
-      changeEl.className = "change " + (change >= 0 ? "positive" : "negative");
-    }
-
-    const payloadVolume = payload && typeof payload === "object"
-      ? numberOrNull(payload.volume24h ?? payload.volumeUsd24h ?? payload.totalVolume24h)
-      : null;
-
-    const summedVolume = candles.reduce((sum, item) => sum + item.volume, 0);
-    el("volume").textContent = formatMoney(payloadVolume ?? summedVolume);
-    el("high").textContent = formatPrice(Math.max(...highs));
-    el("low").textContent = formatPrice(Math.min(...lows));
-  }
-
-  function renderCandles(candles) {
-    if (!candlesSeries || !volumeSeries) return;
-
-    candlesSeries.setData(candles.map((item) => item.candle));
-    volumeSeries.setData(candles.map((item) => ({
-      time: item.candle.time,
-      value: item.volume,
-      color: item.candle.close >= item.candle.open
-        ? "rgba(54,230,160,.36)"
-        : "rgba(255,101,122,.36)"
-    })));
-
-    if (candles.length) {
-      chart.timeScale().fitContent();
-      updateMetrics(candles, lastPayload);
-    }
-  }
-
-  async function fetchChartData() {
-    if (requestController) requestController.abort();
-    requestController = new AbortController();
-
-    const url = new URL(API_URL, window.location.origin);
-    url.searchParams.set("range", currentRange);
-    url.searchParams.set("coinType", CONTRACT_ADDRESS);
-
-    setStatus("Updating market data…");
-
-    try {
-      const response = await fetch(url.toString(), {
-        method: "GET",
-        cache: "no-store",
-        headers: { "Accept": "application/json" },
-        signal: requestController.signal
-      });
-
-      if (!response.ok) {
-        throw new Error("Market API returned HTTP " + response.status);
-      }
-
-      const payload = await response.json();
-      const candles = normalizeCandles(payload);
-
-      if (!candles.length) {
-        throw new Error("No valid candle data returned by /api/chart");
-      }
-
-      lastPayload = payload;
-      lastCandles = candles;
-      renderCandles(candles);
-
-      el("last-updated").textContent =
-        "Last updated: " + new Date().toLocaleTimeString();
-
-      setStatus("Live market data connected");
-    } catch (error) {
-      if (error && error.name === "AbortError") return;
-
-      console.error("[MOJ Terminal] Chart update failed:", error);
-      setStatus("Market data unavailable — check /api/chart", false);
-    }
-  }
-
-  function setRange(range) {
-    currentRange = range;
-
-    el("range-5m").classList.toggle("active", range === "5m");
-    el("range-24h").classList.toggle("active", range === "24h");
-
-    if (chart) {
-      chart.timeScale().applyOptions({
-        timeVisible: true,
-        secondsVisible: range === "5m"
-      });
-    }
-
-    fetchChartData();
-  }
-
-  el("range-5m").addEventListener("click", () => setRange("5m"));
-  el("range-24h").addEventListener("click", () => setRange("24h"));
-
-  el("copy-btn").addEventListener("click", async () => {
-    const button = el("copy-btn");
-
-    try {
-      await navigator.clipboard.writeText(CONTRACT_ADDRESS);
-      button.textContent = "COPIED!";
-    } catch (_) {
-      const input = document.createElement("textarea");
-      input.value = CONTRACT_ADDRESS;
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-
-      let success = false;
       try {
-        success = document.execCommand("copy");
-      } catch (_) {
-        success = false;
-      }
+        const response = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData })
+        });
 
-      input.remove();
-      button.textContent = success ? "COPIED!" : "COPY FAILED";
+        const result = await response.json();
+
+        if (!response.ok || !result.ok || !result.authenticated) {
+          authStatus.textContent =
+            "Telegram verification failed. Reopen the Mini App from Telegram.";
+          return;
+        }
+
+        const name = document.createElement("strong");
+        name.textContent = result.user.first_name;
+
+        authStatus.replaceChildren();
+        authStatus.append("✅ Telegram verified: ", name);
+
+        if (result.user.username) {
+          authStatus.append(
+            document.createTextNode(" (@" + result.user.username + ")")
+          );
+        }
+      } catch {
+        authStatus.textContent =
+          "Unable to verify right now. Please try again.";
+      }
     }
 
-    window.setTimeout(() => {
-      button.textContent = "COPY CA";
-    }, 1800);
-  });
+    verifyTelegramUser();
 
-  function start() {
-    createChart();
-    fetchChartData();
+    document.getElementById("copyButton").addEventListener("click", async () => {
+      const address = document.getElementById("contract").textContent;
+      const status = document.getElementById("status");
 
-    if (refreshTimer) window.clearInterval(refreshTimer);
-    refreshTimer = window.setInterval(fetchChartData, REFRESH_MS);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
-})();
-</script>
-<!-- Part 3 starts here -->
-
-<!-- MOJ Terminal document end -->
+      try {
+        if (tg?.WebAppClipboard?.writeText) {
+          await tg.WebAppClipboard.writeText(address);
+        } else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(address);
+        } else {
+          throw new Error("Clipboard unavailable");
+        }
+        status.textContent = "Contract address copied!";
+      } catch {
+        status.textContent = "Please copy the address manually.";
+      }
+    });
+  </script>
 </body>
 </html>
