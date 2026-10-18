@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +20,7 @@
       --accent: #8cf5c5;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -32,29 +31,11 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    main {
-      max-width: 440px;
-      margin: 0 auto;
-    }
-
-    .brand {
-      text-align: center;
-      padding: 24px 0;
-    }
-
-    .logo {
-      font-size: 48px;
-    }
-
-    h1 {
-      margin: 10px 0 6px;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 14px;
-    }
+    main { max-width: 440px; margin: 0 auto; }
+    .brand { text-align: center; padding: 24px 0; }
+    .logo { font-size: 48px; }
+    h1 { margin: 10px 0 6px; font-size: 28px; }
+    .subtitle { color: var(--muted); font-size: 14px; }
 
     .network {
       display: inline-block;
@@ -74,11 +55,7 @@
       margin: 16px 0;
     }
 
-    .label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
+    .label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
 
     .address {
       font-size: 12px;
@@ -87,8 +64,7 @@
       user-select: text;
     }
 
-    button,
-    .button {
+    button, .button {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -103,22 +79,9 @@
       cursor: pointer;
     }
 
-    button {
-      margin-top: 14px;
-      background: #303d50;
-      color: white;
-    }
-
-    .button {
-      margin-top: 12px;
-      background: var(--accent);
-      color: #102019;
-    }
-
-    .secondary {
-      background: #303d50;
-      color: white;
-    }
+    button { margin-top: 14px; background: #303d50; color: white; }
+    .button { margin-top: 12px; background: var(--accent); color: #102019; }
+    .secondary { background: #303d50; color: white; }
 
     .note {
       text-align: center;
@@ -134,19 +97,11 @@
       font-size: 13px;
     }
 
-    #authStatus {
-      line-height: 1.6;
-      overflow-wrap: anywhere;
-    }
-
-    #authStatus strong {
-      color: var(--accent);
-    }
+    #authStatus { line-height: 1.6; overflow-wrap: anywhere; }
+    #authStatus strong { color: var(--accent); }
 
     /* MOJ chart */
-    .chart-card {
-      padding: 16px 12px 12px;
-    }
+    .chart-card { padding: 16px 12px 12px; }
 
     .chart-heading {
       display: flex;
@@ -156,16 +111,8 @@
       margin: 0 4px 12px;
     }
 
-    .chart-title {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .chart-subtitle {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 5px;
-    }
+    .chart-title { font-size: 16px; font-weight: 700; }
+    .chart-subtitle { color: var(--muted); font-size: 11px; margin-top: 5px; }
 
     .chart-badge {
       color: var(--accent);
@@ -176,10 +123,7 @@
       white-space: nowrap;
     }
 
-    #mojChart {
-      width: 100%;
-      height: 280px;
-    }
+    #mojChart { width: 100%; height: 280px; }
 
     #chartStatus {
       color: var(--muted);
@@ -189,9 +133,7 @@
       overflow-wrap: anywhere;
     }
 
-    #chartStatus.error {
-      color: #ffb4b4;
-    }
+    #chartStatus.error { color: #ffb4b4; }
   </style>
 </head>
 <body>
@@ -215,7 +157,6 @@
       <div id="status" role="status" aria-live="polite"></div>
     </section>
 
-    <!-- MOJ candlestick chart and volume -->
     <section class="card chart-card">
       <div class="chart-heading">
         <div>
@@ -224,7 +165,6 @@
         </div>
         <div class="chart-badge">LIVE UPDATES</div>
       </div>
-
       <div id="mojChart"></div>
       <div id="chartStatus" role="status" aria-live="polite">
         Loading MOJ chart…
@@ -247,240 +187,252 @@
 
     <p class="note">Henohenomoheji (MOJ) · Built on Sui</p>
   </main>
+</body>
+</html>
 
-  <script>
-    // Telegram Mini App initialization
-    const tg = window.Telegram?.WebApp;
-    tg?.ready();
-    tg?.expand();
+<script>
+  // Telegram Mini App initialization
+  const tg = window.Telegram?.WebApp;
+  tg?.ready();
+  tg?.expand();
 
-    const authStatus = document.getElementById("authStatus");
+  const authStatus = document.getElementById("authStatus");
 
-    async function verifyTelegramUser() {
-      const initData = tg?.initData;
+  async function verifyTelegramUser() {
+    const initData = tg?.initData;
 
-      if (!initData) {
+    if (!initData) {
+      authStatus.textContent =
+        "Open this Mini App from Telegram to verify your account.";
+      return;
+    }
+
+    authStatus.textContent = "Verifying Telegram account…";
+
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok || !result.authenticated) {
         authStatus.textContent =
-          "Open this Mini App from Telegram to verify your account.";
+          "Telegram verification failed. Reopen the Mini App from Telegram.";
         return;
       }
 
-      authStatus.textContent = "Verifying Telegram account…";
+      const name = document.createElement("strong");
+      name.textContent = result.user.first_name;
+
+      authStatus.replaceChildren();
+      authStatus.append("✅ Telegram verified: ", name);
+
+      if (result.user.username) {
+        authStatus.append(
+          document.createTextNode(" (@" + result.user.username + ")")
+        );
+      }
+    } catch {
+      authStatus.textContent =
+        "Unable to verify right now. Please try again.";
+    }
+  }
+
+  verifyTelegramUser();
+
+  // Copy MOJ contract address
+  document.getElementById("copyButton").addEventListener("click", async () => {
+    const address = document.getElementById("contract").textContent;
+    const status = document.getElementById("status");
+
+    try {
+      if (tg?.WebAppClipboard?.writeText) {
+        await tg.WebAppClipboard.writeText(address);
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(address);
+      } else {
+        throw new Error("Clipboard unavailable");
+      }
+
+      status.textContent = "Contract address copied!";
+    } catch {
+      status.textContent = "Please copy the address manually.";
+    }
+  });
+
+  // Initialize the MOJ candlestick chart
+  (function initMojChart() {
+    const element = document.getElementById("mojChart");
+    const status = document.getElementById("chartStatus");
+
+    if (!window.LightweightCharts) {
+      status.textContent =
+        "Chart library failed to load. Please use the Turbos chart link.";
+      status.classList.add("error");
+      return;
+    }
+
+    const chart = LightweightCharts.createChart(element, {
+      width: element.clientWidth,
+      height: 280,
+      layout: {
+        background: { type: "solid", color: "#1b2432" },
+        textColor: "#a7b2c4"
+      },
+      grid: {
+        vertLines: { color: "#273243" },
+        horzLines: { color: "#273243" }
+      },
+      rightPriceScale: {
+        borderColor: "#334354",
+        mode: LightweightCharts.PriceScaleMode.Normal,
+        autoScale: true,
+        entireTextOnly: false
+      },
+      timeScale: {
+        borderColor: "#334354",
+        timeVisible: true,
+        secondsVisible: false
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal
+      },
+      localization: {
+        priceFormatter: price => Number(price).toFixed(11)
+      }
+    });
+
+    const candlesSeries = chart.addCandlestickSeries({
+      upColor: "#8cf5c5",
+      downColor: "#ff6b7a",
+      borderUpColor: "#8cf5c5",
+      borderDownColor: "#ff6b7a",
+      wickUpColor: "#8cf5c5",
+      wickDownColor: "#ff6b7a",
+      priceFormat: {
+        type: "price",
+        precision: 11,
+        minMove: 0.00000000001
+      },
+      priceLineVisible: true,
+      lastValueVisible: true
+    });
+
+    const volumeSeries = chart.addHistogramSeries({
+      priceScaleId: "volume",
+      priceFormat: { type: "volume" },
+      lastValueVisible: false,
+      priceLineVisible: false
+    });
+
+    chart.priceScale("volume").applyOptions({
+      scaleMargins: {
+        top: 0.82,
+        bottom: 0
+      }
+    });
+
+    let loading = false;
+    let firstLoad = true;
+</script>
+
+    async function updateChart() {
+      if (loading || document.hidden) return;
+
+      loading = true;
 
       try {
-        const response = await fetch("/api/auth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ initData })
+        const response = await fetch("/api/chart", {
+          cache: "no-store"
         });
 
         const result = await response.json();
 
-        if (!response.ok || !result.ok || !result.authenticated) {
-          authStatus.textContent =
-            "Telegram verification failed. Reopen the Mini App from Telegram.";
-          return;
+        if (
+          !response.ok ||
+          !result.ok ||
+          !Array.isArray(result.candles)
+        ) {
+          throw new Error(result.error || "Chart data unavailable");
         }
 
-        const name = document.createElement("strong");
-        name.textContent = result.user.first_name;
-
-        authStatus.replaceChildren();
-        authStatus.append("✅ Telegram verified: ", name);
-
-        if (result.user.username) {
-          authStatus.append(
-            document.createTextNode(" (@" + result.user.username + ")")
-          );
+        if (result.candles.length === 0) {
+          throw new Error("No candle data available yet");
         }
-      } catch {
-        authStatus.textContent =
-          "Unable to verify right now. Please try again.";
+
+        const rows = result.candles;
+
+        candlesSeries.setData(
+          rows.map(c => ({
+            time: c.time,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close
+          }))
+        );
+
+        volumeSeries.setData(
+          rows.map(c => ({
+            time: c.time,
+            value: c.volume || 0,
+            color: c.close >= c.open
+              ? "rgba(140,245,197,0.35)"
+              : "rgba(255,107,122,0.35)"
+          }))
+        );
+
+        if (firstLoad) {
+          chart.timeScale().fitContent();
+          firstLoad = false;
+        }
+
+        status.classList.remove("error");
+        status.textContent =
+          "Updated " +
+          new Date().toLocaleTimeString() +
+          " · Refreshes every 60 seconds";
+      } catch (error) {
+        status.textContent =
+          "Chart update failed: " +
+          (error.message || "Unknown error");
+        status.classList.add("error");
+      } finally {
+        loading = false;
       }
     }
 
-    verifyTelegramUser();
+    // Resize the chart for different screen sizes
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        chart.applyOptions({
+          width: element.clientWidth
+        });
+      });
 
-    // Copy MOJ contract address
-    document.getElementById("copyButton").addEventListener("click", async () => {
-      const address = document.getElementById("contract").textContent;
-      const status = document.getElementById("status");
+      observer.observe(element);
+    } else {
+      window.addEventListener("resize", () => {
+        chart.applyOptions({
+          width: element.clientWidth
+        });
+      });
+    }
 
-      try {
-        if (tg?.WebAppClipboard?.writeText) {
-          await tg.WebAppClipboard.writeText(address);
-        } else if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(address);
-        } else {
-          throw new Error("Clipboard unavailable");
-        }
+    // Initial load and automatic refresh every 60 seconds
+    updateChart();
+    setInterval(updateChart, 60000);
 
-        status.textContent = "Contract address copied!";
-      } catch {
-        status.textContent = "Please copy the address manually.";
+    // Refresh when the Mini App becomes visible again
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        updateChart();
       }
     });
-        // Initialize the MOJ candlestick chart
-    (function initMojChart() {
-      const element = document.getElementById("mojChart");
-      const status = document.getElementById("chartStatus");
-
-      if (!window.LightweightCharts) {
-        status.textContent =
-          "Chart library failed to load. Please use the Turbos chart link.";
-        status.classList.add("error");
-        return;
-      }
-
-      const chart = LightweightCharts.createChart(element, {
-        width: element.clientWidth,
-        height: 280,
-        layout: {
-          background: {
-            type: "solid",
-            color: "#1b2432"
-          },
-          textColor: "#a7b2c4"
-        },
-        grid: {
-          vertLines: { color: "#273243" },
-          horzLines: { color: "#273243" }
-        },
-        rightPriceScale: {
-          borderColor: "#334354"
-        },
-        timeScale: {
-          borderColor: "#334354",
-          timeVisible: true,
-          secondsVisible: false
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal
-        }
-      });
-
-      const candlesSeries = chart.addCandlestickSeries({
-        upColor: "#8cf5c5",
-        downColor: "#ff6b7a",
-        borderUpColor: "#8cf5c5",
-        borderDownColor: "#ff6b7a",
-        wickUpColor: "#8cf5c5",
-        wickDownColor: "#ff6b7a"
-      });
-
-      const volumeSeries = chart.addHistogramSeries({
-        priceScaleId: "volume",
-        priceFormat: { type: "volume" },
-        lastValueVisible: false,
-        priceLineVisible: false
-      });
-
-      chart.priceScale("volume").applyOptions({
-        scaleMargins: {
-          top: 0.82,
-          bottom: 0
-        }
-      });
-
-      let loading = false;
-      let firstLoad = true;
-
-      async function updateChart() {
-        if (loading || document.hidden) return;
-
-        loading = true;
-
-        try {
-          const response = await fetch("/api/chart", {
-            cache: "no-store"
-          });
-
-          const result = await response.json();
-
-          if (
-            !response.ok ||
-            !result.ok ||
-            !Array.isArray(result.candles)
-          ) {
-            throw new Error(
-              result.error || "Chart data unavailable"
-            );
-          }
-
-          if (result.candles.length === 0) {
-            throw new Error("No candle data available yet");
-          }
-
-          const rows = result.candles;
-
-          candlesSeries.setData(
-            rows.map(c => ({
-              time: c.time,
-              open: c.open,
-              high: c.high,
-              low: c.low,
-              close: c.close
-            }))
-          );
-
-          volumeSeries.setData(
-            rows.map(c => ({
-              time: c.time,
-              value: c.volume || 0,
-              color: c.close >= c.open
-                ? "rgba(140,245,197,0.35)"
-                : "rgba(255,107,122,0.35)"
-            }))
-          );
-
-          if (firstLoad) {
-            chart.timeScale().fitContent();
-            firstLoad = false;
-          }
-
-          status.classList.remove("error");
-          status.textContent =
-            "Updated " +
-            new Date().toLocaleTimeString() +
-            " · Refreshes every 15 seconds";
-        } catch (error) {
-          status.textContent =
-            "Chart update failed: " +
-            (error.message || "Unknown error");
-          status.classList.add("error");
-        } finally {
-          loading = false;
-        }
-      }
-
-      // Resize the chart for different screen sizes
-      if (typeof ResizeObserver !== "undefined") {
-        const observer = new ResizeObserver(() => {
-          chart.applyOptions({
-            width: element.clientWidth
-          });
-        });
-
-        observer.observe(element);
-      } else {
-        window.addEventListener("resize", () => {
-          chart.applyOptions({
-            width: element.clientWidth
-          });
-        });
-      }
-
-      // Initial load and automatic refresh every 15 seconds
-      updateChart();
-      setInterval(updateChart, 15000);
-
-      // Refresh when the Mini App becomes visible again
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-          updateChart();
-        }
-      });
-    })();
-  </script>
+  })();
+</script>
 </body>
 </html>
