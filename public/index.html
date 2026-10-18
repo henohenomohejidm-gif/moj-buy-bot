@@ -26,33 +26,20 @@
       --yellow: #e8c66a;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html {
+    html, body {
+      margin: 0;
       min-height: 100%;
       background: var(--bg);
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
       color: var(--text);
-      font-family:
-        Inter, ui-sans-serif, system-ui, -apple-system,
-        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
       font-variant-numeric: tabular-nums;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button {
-      font: inherit;
-    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
 
     .app {
       width: min(1440px, 100%);
@@ -62,8 +49,8 @@
 
     .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 18px;
       margin-bottom: 22px;
     }
@@ -84,9 +71,9 @@
       border: 1px solid var(--green);
       border-radius: 12px;
       color: var(--green);
+      background: #0b1717;
       font-size: 22px;
       font-weight: 900;
-      background: #0b1717;
       box-shadow: 0 0 24px #20d6a012;
     }
 
@@ -112,7 +99,7 @@
       gap: 9px;
     }
 
-    .status {
+    .status, .range-pill {
       display: inline-flex;
       align-items: center;
       gap: 7px;
@@ -122,7 +109,7 @@
       background: var(--panel);
       color: var(--muted);
       font-size: 11px;
-      letter-spacing: 0.8px;
+      letter-spacing: .8px;
     }
 
     .status-dot {
@@ -134,14 +121,10 @@
     }
 
     .range-pill {
-      padding: 8px 12px;
-      border: 1px solid #20d6a04d;
-      border-radius: 8px;
+      border-color: #20d6a04d;
       color: var(--green);
       background: #20d6a00c;
-      font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1px;
     }
 
     .metrics {
@@ -164,7 +147,6 @@
       font-size: 10px;
       font-weight: 750;
       letter-spacing: 1.2px;
-      text-transform: uppercase;
     }
 
     .metric-value {
@@ -172,7 +154,7 @@
       overflow-wrap: anywhere;
       font-size: clamp(19px, 2.2vw, 29px);
       font-weight: 800;
-      letter-spacing: -0.7px;
+      letter-spacing: -.7px;
     }
 
     .metric-note {
@@ -181,17 +163,9 @@
       font-size: 11px;
     }
 
-    .green {
-      color: var(--green);
-    }
-
-    .red {
-      color: var(--red);
-    }
-
-    .muted {
-      color: var(--muted);
-    }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .muted { color: var(--muted); }
 
     .chart-panel {
       overflow: hidden;
@@ -222,7 +196,7 @@
       margin: 0;
       font-size: 14px;
       font-weight: 800;
-      letter-spacing: 0.8px;
+      letter-spacing: .8px;
     }
 
     .chart-heading p {
@@ -276,8 +250,8 @@
       inset: 0;
       z-index: 2;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       padding: 20px;
       color: var(--muted);
       background: #080b10e8;
@@ -286,9 +260,7 @@
       pointer-events: none;
     }
 
-    .chart-message[hidden] {
-      display: none;
-    }
+    .chart-message[hidden] { display: none; }
 
     .chart-footer {
       display: flex;
@@ -298,16 +270,16 @@
       padding: 10px 15px;
       border-top: 1px solid var(--border);
       color: var(--muted);
-      font-size: 10px;
       background: var(--panel);
+      font-size: 10px;
     }
 
     .section-title {
       margin: 25px 0 12px;
+      color: var(--muted);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 1.3px;
-      color: var(--muted);
     }
 
     .links {
@@ -321,12 +293,12 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 15px;
       min-width: 0;
+      padding: 15px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: var(--panel);
-      transition: border-color 0.15s, background 0.15s;
+      transition: border-color .15s, background .15s;
     }
 
     .link-card:hover {
@@ -334,10 +306,7 @@
       background: var(--panel2);
     }
 
-    .link-name {
-      font-size: 12px;
-      font-weight: 750;
-    }
+    .link-name { font-size: 12px; font-weight: 750; }
 
     .link-description {
       margin-top: 4px;
@@ -346,9 +315,9 @@
     }
 
     .link-arrow {
+      flex-shrink: 0;
       color: var(--green);
       font-size: 17px;
-      flex-shrink: 0;
     }
 
     .contract-panel {
@@ -374,8 +343,8 @@
     }
 
     .contract-address {
-      min-width: 0;
       flex: 1;
+      min-width: 0;
       overflow-wrap: anywhere;
       color: #c9d5e2;
       font-size: 11px;
@@ -394,9 +363,7 @@
       font-weight: 800;
     }
 
-    .copy-btn:hover {
-      background: #20d6a01c;
-    }
+    .copy-btn:hover { background: #20d6a01c; }
 
     .footer {
       display: flex;
@@ -410,104 +377,30 @@
     }
 
     @media (max-width: 760px) {
-      .app {
-        padding: 13px;
-      }
-
-      .topbar {
-        align-items: flex-start;
-      }
-
-      .brand-title {
-        font-size: 17px;
-      }
-
-      .brand-subtitle {
-        font-size: 9px;
-        letter-spacing: 1px;
-      }
-
-      .logo {
-        width: 39px;
-        height: 39px;
-      }
-
-      .top-right {
-        gap: 6px;
-      }
-
-      .status {
-        padding: 7px 8px;
-        font-size: 9px;
-      }
-
-      .range-pill {
-        padding: 7px 8px;
-        font-size: 9px;
-      }
-
-      .metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 9px;
-      }
-
-      .metric {
-        padding: 13px;
-      }
-
-      .metric-value {
-        margin-top: 9px;
-        font-size: 22px;
-      }
-
-      .metric-note {
-        font-size: 10px;
-      }
-
-      .chart-toolbar {
-        align-items: flex-start;
-        padding: 13px;
-      }
-
-      .legend {
-        gap: 9px;
-        font-size: 10px;
-      }
-
-      #chart-wrap {
-        height: 370px;
-      }
-
-      .links {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .link-card {
-        padding: 12px;
-      }
-
-      .link-name {
-        font-size: 11px;
-      }
+      .app { padding: 13px; }
+      .topbar { align-items: flex-start; }
+      .brand-title { font-size: 17px; }
+      .brand-subtitle { font-size: 9px; letter-spacing: 1px; }
+      .logo { width: 39px; height: 39px; }
+      .top-right { gap: 6px; }
+      .status, .range-pill { padding: 7px 8px; font-size: 9px; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .metric { padding: 13px; }
+      .metric-value { margin-top: 9px; font-size: 22px; }
+      .metric-note { font-size: 10px; }
+      .chart-toolbar { align-items: flex-start; padding: 13px; }
+      .legend { gap: 9px; font-size: 10px; }
+      #chart-wrap { height: 370px; }
+      .links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .link-card { padding: 12px; }
+      .link-name { font-size: 11px; }
     }
 
     @media (max-width: 390px) {
-      .topbar {
-        flex-direction: column;
-      }
-
-      .top-right {
-        justify-content: flex-start;
-      }
-
-      #chart-wrap {
-        height: 340px;
-      }
-
-      .contract-row {
-        align-items: flex-start;
-        flex-direction: column;
-      }
+      .topbar { flex-direction: column; }
+      .top-right { justify-content: flex-start; }
+      #chart-wrap { height: 340px; }
+      .contract-row { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
@@ -522,7 +415,6 @@
           <div class="brand-subtitle">HENOHENOMOHEJI · SUI ECOSYSTEM</div>
         </div>
       </div>
-
       <div class="top-right">
         <div class="status">
           <span class="status-dot"></span>
@@ -532,25 +424,22 @@
       </div>
     </header>
 
-    <section class="metrics" aria-label="Market overview">
+    <section class="metrics">
       <article class="metric">
         <div class="metric-label">MOJ PRICE · USD</div>
         <div class="metric-value" id="price-value">—</div>
         <div class="metric-note">Latest available price</div>
       </article>
-
       <article class="metric">
         <div class="metric-label">FDV · USD</div>
         <div class="metric-value" id="fdv-value">—</div>
         <div class="metric-note">Price × 10B total supply</div>
       </article>
-
       <article class="metric">
         <div class="metric-label">24H VOLUME · USD</div>
         <div class="metric-value" id="volume-value">—</div>
         <div class="metric-note">Reported 24-hour volume</div>
       </article>
-
       <article class="metric">
         <div class="metric-label">24H CHANGE</div>
         <div class="metric-value" id="change-value">—</div>
@@ -564,32 +453,17 @@
           <h2>MOJ / USD</h2>
           <p>24H CANDLESTICK CHART · LIVE DATA</p>
         </div>
-
         <div class="legend">
-          <span class="legend-item">
-            <span class="legend-box"></span>
-            Candle
-          </span>
-          <span class="legend-item">
-            <span class="legend-line" style="background:#58a6ff"></span>
-            MA 7
-          </span>
-          <span class="legend-item">
-            <span class="legend-line" style="background:#b59aff"></span>
-            MA 25
-          </span>
-          <span class="legend-item">
-            <span class="legend-line" style="background:#e8c66a"></span>
-            MA 99
-          </span>
+          <span class="legend-item"><span class="legend-box"></span>Candle</span>
+          <span class="legend-item"><span class="legend-line" style="background:#58a6ff"></span>MA 7</span>
+          <span class="legend-item"><span class="legend-line" style="background:#b59aff"></span>MA 25</span>
+          <span class="legend-item"><span class="legend-line" style="background:#e8c66a"></span>MA 99</span>
         </div>
       </div>
 
       <div id="chart-wrap">
         <div id="chart"></div>
-        <div class="chart-message" id="chart-message">
-          Loading MOJ market data…
-        </div>
+        <div class="chart-message" id="chart-message">Loading MOJ market data…</div>
       </div>
 
       <div class="chart-footer">
@@ -601,81 +475,28 @@
     <h2 class="section-title">MOJ ECOSYSTEM</h2>
 
     <section class="links">
-      <a
-        class="link-card"
-        href="https://www.tradingview.com/chart/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">TradingView</div>
-          <div class="link-description">Charts & analysis</div>
-        </div>
+      <a class="link-card" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">TradingView</div><div class="link-description">Charts & analysis</div></div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <a
-        class="link-card"
-        href="https://app.turbos.finance/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">Turbos Finance</div>
-          <div class="link-description">Trade on Sui</div>
-        </div>
+      <a class="link-card" href="https://app.turbos.finance/" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">Turbos Finance</div><div class="link-description">Trade on Sui</div></div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <a
-        class="link-card"
-        href="https://suivision.xyz/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">SuiVision</div>
-          <div class="link-description">Explore on-chain data</div>
-        </div>
+      <a class="link-card" href="https://suivision.xyz/" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">SuiVision</div><div class="link-description">Explore on-chain data</div></div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <a
-        class="link-card"
-        href="https://t.me/heno_henomoheji"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">Telegram</div>
-          <div class="link-description">MOJ community</div>
-        </div>
+      <a class="link-card" href="https://t.me/heno_henomoheji" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">Telegram</div><div class="link-description">MOJ community</div></div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <a
-        class="link-card"
-        href="https://x.com/MOHEJI_MOJ"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">Official X</div>
-          <div class="link-description">Project updates</div>
-        </div>
+      <a class="link-card" href="https://x.com/MOHEJI_MOJ" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">Official X</div><div class="link-description">Project updates</div></div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <a
-        class="link-card"
-        href="https://moheji-website.vercel.app/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>
-          <div class="link-name">Official Website</div>
-          <div class="link-description">About MOJ</div>
-        </div>
+      <a class="link-card" href="https://moheji-website.vercel.app/" target="_blank" rel="noopener noreferrer">
+        <div><div class="link-name">Official Website</div><div class="link-description">About MOJ</div></div>
         <span class="link-arrow">↗</span>
       </a>
     </section>
@@ -683,12 +504,8 @@
     <section class="contract-panel">
       <div class="contract-label">MOJ CONTRACT ADDRESS · SUI</div>
       <div class="contract-row">
-        <div class="contract-address" id="contract-address">
-          0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ
-        </div>
-        <button class="copy-btn" id="copy-btn" type="button">
-          COPY CA
-        </button>
+        <div class="contract-address" id="contract-address">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
+        <button class="copy-btn" id="copy-btn" type="button">COPY CA</button>
       </div>
     </section>
 
@@ -699,10 +516,10 @@
   </main>
 
   <script>
+
     (() => {
       "use strict";
 
-      // Existing API endpoint — no API-side files need to be changed.
       const API_URL = "/api/chart";
       const FIXED_RANGE = "24h";
       const TOTAL_SUPPLY = 10_000_000_000;
@@ -723,6 +540,14 @@
         white: "#f8fafc"
       };
 
+      // FIX: retain tiny token prices instead of rounding the axis to 0.00.
+      // Increase precision if MOJ's price has more than 12 decimal places.
+      const TOKEN_PRICE_FORMAT = {
+        type: "price",
+        precision: 12,
+        minMove: 0.000000000001
+      };
+
       const $ = (id) => document.getElementById(id);
 
       const chartElement = $("chart");
@@ -735,7 +560,6 @@
       let ma25Series = null;
       let ma99Series = null;
       let volumeSeries = null;
-
       let refreshTimer = null;
       let resizeObserver = null;
       let requestInProgress = false;
@@ -746,9 +570,7 @@
           return null;
         }
 
-        if (typeof value === "object") {
-          return null;
-        }
+        if (typeof value === "object") return null;
 
         const number = Number(value);
         return Number.isFinite(number) ? number : null;
@@ -756,7 +578,6 @@
 
       function formatPrice(value) {
         if (!Number.isFinite(value)) return "—";
-
         if (value === 0) return "$0";
 
         const abs = Math.abs(value);
@@ -770,36 +591,40 @@
         if (abs >= 1) {
           return "$" + value.toLocaleString("en-US", {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 6
+            maximumFractionDigits: 8
           });
         }
 
         return "$" + value.toLocaleString("en-US", {
           minimumFractionDigits: 2,
-          maximumFractionDigits: 10
+          maximumFractionDigits: 12
         });
       }
 
       function formatCompactUSD(value) {
         if (!Number.isFinite(value)) return "—";
 
-        const abs = Math.abs(value);
-
-        if (abs >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
-        if (abs >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
-        if (abs >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
-        if (abs >= 1e3) return "$" + (value / 1e3).toFixed(2) + "K";
+        if (Math.abs(value) >= 1e12) {
+          return "$" + (value / 1e12).toFixed(2) + "T";
+        }
+        if (Math.abs(value) >= 1e9) {
+          return "$" + (value / 1e9).toFixed(2) + "B";
+        }
+        if (Math.abs(value) >= 1e6) {
+          return "$" + (value / 1e6).toFixed(2) + "M";
+        }
+        if (Math.abs(value) >= 1e3) {
+          return "$" + (value / 1e3).toFixed(2) + "K";
+        }
 
         return "$" + value.toLocaleString("en-US", {
-          maximumFractionDigits: 2
+          maximumFractionDigits: 8
         });
       }
 
       function formatChange(value) {
         if (!Number.isFinite(value)) return "—";
-
-        const prefix = value > 0 ? "+" : "";
-        return prefix + value.toFixed(2) + "%";
+        return (value > 0 ? "+" : "") + value.toFixed(2) + "%";
       }
 
       function setStatus(text, connected) {
@@ -825,7 +650,7 @@
 
       function createChart() {
         if (!window.LightweightCharts) {
-          showChartMessage("Chart library failed to load. Please reload the page.");
+          showChartMessage("Chart library failed to load. Please reload.");
           setStatus("CHART ERROR", false);
           return;
         }
@@ -844,7 +669,6 @@
             fontSize: 11
           },
 
-          // Dotted grid on the dark background.
           grid: {
             vertLines: {
               color: COLORS.grid,
@@ -875,12 +699,16 @@
           },
 
           rightPriceScale: {
+            visible: true,
+            autoScale: true,
+            mode: LightweightCharts.PriceScaleMode.Normal,
+            borderVisible: true,
             borderColor: "#263442",
             scaleMargins: {
               top: 0.08,
               bottom: 0.23
             },
-            entireTextOnly: true
+            entireTextOnly: false
           },
 
           timeScale: {
@@ -889,9 +717,7 @@
             secondsVisible: false,
             rightOffset: 3,
             barSpacing: 8,
-            minBarSpacing: 2,
-            fixLeftEdge: false,
-            fixRightEdge: false
+            minBarSpacing: 2
           },
 
           localization: {
@@ -912,9 +738,12 @@
           }
         });
 
-        // Bullish candles: hollow bodies with green borders and wicks.
-        // Bearish candles: white bodies with green borders and wicks.
+        // Hollow green bullish candles; white bearish bodies.
+        // Both candle directions have green borders and wicks.
         candleSeries = chart.addCandlestickSeries({
+          priceScaleId: "right",
+          priceFormat: { ...TOKEN_PRICE_FORMAT },
+
           upColor: COLORS.background,
           borderUpColor: COLORS.green,
           wickUpColor: COLORS.green,
@@ -929,39 +758,37 @@
           lastValueVisible: true
         });
 
-        ma7Series = chart.addLineSeries({
-          color: COLORS.blue,
+        const maOptions = {
+          priceScaleId: "right",
+          priceFormat: { ...TOKEN_PRICE_FORMAT },
           lineWidth: 1,
           priceLineVisible: false,
           lastValueVisible: false,
-          crosshairMarkerVisible: false,
+          crosshairMarkerVisible: false
+        };
+
+        ma7Series = chart.addLineSeries({
+          ...maOptions,
+          color: COLORS.blue,
           title: "MA 7"
         });
 
         ma25Series = chart.addLineSeries({
+          ...maOptions,
           color: COLORS.purple,
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
           title: "MA 25"
         });
 
         ma99Series = chart.addLineSeries({
+          ...maOptions,
           color: COLORS.yellow,
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
           title: "MA 99"
         });
 
-        // Volume bars occupy the lower part of the chart.
+        // Volume uses a separate scale from token price.
         volumeSeries = chart.addHistogramSeries({
           priceScaleId: "volume",
-          priceFormat: {
-            type: "volume"
-          },
+          priceFormat: { type: "volume" },
           priceLineVisible: false,
           lastValueVisible: false,
           base: 0
@@ -997,7 +824,7 @@
       }
 
       function resizeChart() {
-        if (!chart || !chartElement) return;
+        if (!chart) return;
 
         chart.applyOptions({
           width: chartElement.clientWidth,
@@ -1008,40 +835,38 @@
       function normalizeTime(value) {
         if (value === null || value === undefined) return null;
 
-        if (typeof value === "string" && !/^\d+(\.\d+)?$/.test(value)) {
+        if (
+          typeof value === "string" &&
+          !/^\d+(\.\d+)?$/.test(value)
+        ) {
           const milliseconds = Date.parse(value);
-          if (!Number.isFinite(milliseconds)) return null;
-          return Math.floor(milliseconds / 1000);
+          return Number.isFinite(milliseconds)
+            ? Math.floor(milliseconds / 1000)
+            : null;
         }
 
         const number = Number(value);
         if (!Number.isFinite(number)) return null;
 
-        // Timestamps in milliseconds are converted to seconds.
         return Math.floor(number > 1e12 ? number / 1000 : number);
       }
 
       function normalizeCandles(rawCandles) {
         if (!Array.isArray(rawCandles)) return [];
 
-        const candles = [];
+        const byTime = new Map();
 
         for (const item of rawCandles) {
           if (!item || typeof item !== "object") continue;
 
           const time = normalizeTime(
-            item.time ??
-            item.timestamp ??
-            item.ts ??
-            item.date ??
-            item.t
+            item.time ?? item.timestamp ?? item.ts ?? item.date ?? item.t
           );
 
           const open = asNumber(item.open ?? item.o);
           const high = asNumber(item.high ?? item.h);
           const low = asNumber(item.low ?? item.l);
           const close = asNumber(item.close ?? item.c);
-
           const volume = asNumber(
             item.volume ?? item.vol ?? item.v
           ) ?? 0;
@@ -1066,7 +891,7 @@
             continue;
           }
 
-          candles.push({
+          byTime.set(time, {
             time,
             open,
             high,
@@ -1074,13 +899,6 @@
             close,
             volume: Math.max(0, volume)
           });
-        }
-
-        // Lightweight Charts requires unique, ascending timestamps.
-        const byTime = new Map();
-
-        for (const candle of candles) {
-          byTime.set(candle.time, candle);
         }
 
         return Array.from(byTime.values()).sort(
@@ -1110,19 +928,7 @@
         return output;
       }
 
-      function setMetric(id, value, colorClass) {
-        const element = $(id);
-        element.textContent = value;
-
-        element.classList.remove("green", "red");
-
-        if (colorClass) {
-          element.classList.add(colorClass);
-        }
-      }
-
       function getCandlesFromResponse(data) {
-        // Supports common response shapes while keeping the API unchanged.
         const candidates = [
           data?.candles,
           data?.data?.candles,
@@ -1138,9 +944,100 @@
         return [];
       }
 
+      function updateChart(candles) {
+        candleSeries.setData(candles.map((c) => ({
+          time: c.time,
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close
+        })));
+
+        ma7Series.setData(calculateSMA(candles, 7));
+        ma25Series.setData(calculateSMA(candles, 25));
+        ma99Series.setData(calculateSMA(candles, 99));
+
+        volumeSeries.setData(candles.map((c) => ({
+          time: c.time,
+          value: c.volume,
+          color: c.close >= c.open ? "#20d6a055" : "#f8fafc55"
+        })));
+
+        // Reapply autoscaling after updating candle data.
+        chart.priceScale("right").applyOptions({
+          autoScale: true
+        });
+
+        if (!hasLoadedData) {
+          chart.timeScale().fitContent();
+        }
+      }
+
+      function setMetric(id, value, colorClass) {
+        const element = $(id);
+        element.textContent = value;
+        element.classList.remove("green", "red");
+
+        if (colorClass) element.classList.add(colorClass);
+      }
+
+      function updateMetrics(data, candles) {
+        const latest = candles[candles.length - 1];
+
+        const price = asNumber(
+          data.price ??
+          data.currentPrice ??
+          data.current_price ??
+          data.tokenPrice ??
+          data.token_price
+        ) ?? latest.close;
+
+        const volume = asNumber(
+          data.volume24h ??
+          data.volume_24h ??
+          data.vol24h ??
+          data.volume
+        );
+
+        let change = asNumber(
+          data.change24h ??
+          data.change_24h ??
+          data.priceChange24h ??
+          data.price_change_24h
+        );
+
+        if (change === null && candles.length >= 2) {
+          const firstClose = candles[0].close;
+
+          if (firstClose > 0) {
+            change =
+              ((latest.close - firstClose) / firstClose) * 100;
+          }
+        }
+
+        setMetric("price-value", formatPrice(price));
+
+        setMetric(
+          "fdv-value",
+          Number.isFinite(price)
+            ? formatCompactUSD(price * TOTAL_SUPPLY)
+            : "—"
+        );
+
+        setMetric(
+          "volume-value",
+          volume === null ? "—" : formatCompactUSD(volume)
+        );
+
+        setMetric(
+          "change-value",
+          formatChange(change),
+          change === null ? null : change >= 0 ? "green" : "red"
+        );
+      }
+
       async function fetchChartData() {
         if (requestInProgress) return;
-
         requestInProgress = true;
 
         try {
@@ -1151,9 +1048,7 @@
           const response = await fetch(url.toString(), {
             method: "GET",
             cache: "no-store",
-            headers: {
-              Accept: "application/json"
-            }
+            headers: { Accept: "application/json" }
           });
 
           if (!response.ok) {
@@ -1166,14 +1061,14 @@
             throw new Error("Invalid API response");
           }
 
-          const rawCandles = getCandlesFromResponse(data);
-          const candles = normalizeCandles(rawCandles);
+          const candles = normalizeCandles(getCandlesFromResponse(data));
 
           if (candles.length === 0) {
-            throw new Error(
-              "No valid candles found in API response. Check the response field names."
-            );
+            throw new Error("No valid candles found in API response");
           }
+
+          // Diagnostic output: inspect these values in the browser console.
+          console.debug("[MOJ Terminal] Latest candles:", candles.slice(-3));
 
           updateChart(candles);
           updateMetrics(data, candles);
@@ -1198,93 +1093,12 @@
 
           if (!hasLoadedData) {
             showChartMessage(
-              "Unable to load market data. Check /api/chart and its response format."
+              "Unable to load market data. Check /api/chart response format."
             );
           }
         } finally {
           requestInProgress = false;
         }
-      }
-
-      function updateChart(candles) {
-        candleSeries.setData(
-          candles.map((candle) => ({
-            time: candle.time,
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close
-          }))
-        );
-
-        ma7Series.setData(calculateSMA(candles, 7));
-        ma25Series.setData(calculateSMA(candles, 25));
-        ma99Series.setData(calculateSMA(candles, 99));
-
-        volumeSeries.setData(
-          candles.map((candle) => ({
-            time: candle.time,
-            value: candle.volume,
-            color: candle.close >= candle.open
-              ? "#20d6a055"
-              : "#f8fafc55"
-          }))
-        );
-
-        if (!hasLoadedData) {
-          chart.timeScale().fitContent();
-        }
-      }
-
-      function updateMetrics(data, candles) {
-        const latestCandle = candles[candles.length - 1];
-
-        const price = asNumber(
-          data.price ??
-          data.currentPrice ??
-          data.current_price ??
-          data.tokenPrice ??
-          data.token_price
-        ) ?? latestCandle.close;
-
-        const volume = asNumber(
-          data.volume24h ??
-          data.volume_24h ??
-          data.vol24h ??
-          data.volume
-        );
-
-        let change = asNumber(
-          data.change24h ??
-          data.change_24h ??
-          data.priceChange24h ??
-          data.price_change_24h
-        );
-
-        // If the API does not provide a change figure, estimate it from
-        // the available candle data. This is only an estimate.
-        if (change === null && candles.length >= 2) {
-          const firstClose = candles[0].close;
-
-          if (firstClose > 0) {
-            change = ((latestCandle.close - firstClose) / firstClose) * 100;
-          }
-        }
-
-        setMetric("price-value", formatPrice(price));
-        setMetric(
-          "fdv-value",
-          Number.isFinite(price) ? formatCompactUSD(price * TOTAL_SUPPLY) : "—"
-        );
-        setMetric(
-          "volume-value",
-          volume === null ? "—" : formatCompactUSD(volume)
-        );
-        setMetric(
-          "change-value",
-          formatChange(change),
-          change === null ? null : change >= 0 ? "green" : "red"
-        );
       }
 
       $("copy-btn").addEventListener("click", async () => {
@@ -1294,7 +1108,6 @@
           await navigator.clipboard.writeText(CONTRACT_ADDRESS);
           button.textContent = "COPIED!";
         } catch (error) {
-          // Fallback for browsers where Clipboard API is unavailable.
           const textArea = document.createElement("textarea");
           textArea.value = CONTRACT_ADDRESS;
           textArea.style.position = "fixed";
@@ -1321,11 +1134,9 @@
 
       function start() {
         createChart();
-
         if (!chart) return;
 
         fetchChartData();
-
         refreshTimer = window.setInterval(
           fetchChartData,
           REFRESH_INTERVAL
@@ -1337,13 +1148,8 @@
           window.clearInterval(refreshTimer);
         }
 
-        if (resizeObserver) {
-          resizeObserver.disconnect();
-        }
-
-        if (chart) {
-          chart.remove();
-        }
+        if (resizeObserver) resizeObserver.disconnect();
+        if (chart) chart.remove();
       });
 
       start();
