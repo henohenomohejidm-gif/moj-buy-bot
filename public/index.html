@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -178,6 +178,7 @@
     #chart {
       width: 100%;
       height: 380px;
+      position: relative;
     }
 
     .links {
@@ -265,13 +266,15 @@
 
       <div class="stats">
         <div class="stat">
-          <div class="stat-label">MARKET CAP</div>
+          <div class="stat-label">FDV (TOTAL SUPPLY)</div>
           <div class="stat-value" id="marketCap">$—</div>
         </div>
+
         <div class="stat">
           <div class="stat-label">24H VOLUME</div>
           <div class="stat-value" id="volume24h">$—</div>
         </div>
+
         <div class="stat">
           <div class="stat-label">NETWORK</div>
           <div class="stat-value">Sui</div>
@@ -282,6 +285,7 @@
     <section class="panel chart-panel">
       <div class="chart-heading">
         <div class="chart-title">MOJ / USD CHART</div>
+
         <div class="chart-actions">
           <button class="chip active" id="btn5m" type="button">5M</button>
           <button class="chip" id="btn24h" type="button">24H</button>
@@ -354,88 +358,70 @@
   </div>
 
   <script>
-    const API_URL = "/api/chart";
+        const API_URL = "/api/chart";
     const TOTAL_SUPPLY = 10000000000;
 
     const CONTRACT =
       "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
-    const TURBOS_URL =
-      "https://app.turbos.finance/fun/#/fun/" + CONTRACT;
-
     const $ = (id) => document.getElementById(id);
 
-    const formatPrice = (price) => {
-      if (!Number.isFinite(price) || price <= 0) return "$—";
+    let chart = null;
+    let candleSeries = null;
+    let volumeSeries = null;
+    let currentPriceLine = null;
+    let lastCurrentPrice = null;
+    let chartReady = false;
+    let currentRange = "5m";
+    let latestRequestId = 0;
+    let refreshTimer = null;
+
+    function formatPrice(price) {
+      if (!Number.isFinite(price) || price <= 0) {
+        return "$—";
+      }
 
       return "$" + price.toLocaleString("en-US", {
         maximumSignificantDigits: 8
       });
-    };
-
-    const formatMoney = (value) => {
-      if (!Number.isFinite(value) || value < 0) return "$—";
-
-      return "$" + value.toLocaleString("en-US", {
-        maximumFractionDigits: 2
-      });
-    };
-
-    let chart;
-    let candleSeries;
-    let volumeSeries;
-    let currentPriceLine = null;
-    let lastCurrentPrice = null;
-    let candlesCache = [];
-    let volumeCache = [];
-    let chartReady = false;
-    let refreshInProgress = false;
-        let currentRange = "5m";
-    let refreshTimer = null;
-
-    function formatTime(timestamp) {
-      const date = new Date(timestamp * 1000);
-
-      if (currentRange === "24h") {
-        return date.toLocaleTimeString("ja-JP", {
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      }
-
-      return date.toLocaleTimeString("ja-JP", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      });
     }
 
-    function formatVolume(value) {
-      if (!Number.isFinite(value) || value < 0) return "—";
+    function formatMoney(value) {
+      if (!Number.isFinite(value) || value < 0) {
+        return "$—";
+      }
 
-      return value.toLocaleString("en-US", {
+      return "$" + value.toLocaleString("en-US", {
         maximumFractionDigits: 2
       });
     }
 
     function setText(id, value) {
       const element = $(id);
-      if (element) element.textContent = value;
+
+      if (element) {
+        element.textContent = value;
+      }
     }
 
     function updatePriceLine(price) {
-      if (!candleSeries || !Number.isFinite(price) || price <= 0) {
+      if (
+        !candleSeries ||
+        !Number.isFinite(price) ||
+        price <= 0
+      ) {
         return;
       }
 
       try {
         if (currentPriceLine) {
           candleSeries.removePriceLine(currentPriceLine);
+          currentPriceLine = null;
         }
 
         currentPriceLine = candleSeries.createPriceLine({
-          price,
-          color: "#22c55e",
+          price: price,
+          color: "#20d6a0",
           lineWidth: 2,
           lineStyle: 2,
           axisLabelVisible: true,
@@ -449,22 +435,25 @@
     function updateMarketStats(data) {
       const price = Number(data.price);
       const volume = Number(data.volume24h);
-      const marketCap = Number.isFinite(price) && price > 0
-        ? price * TOTAL_SUPPLY
-        : NaN;
+      const change = Number(data.change24h);
 
       if (Number.isFinite(price) && price > 0) {
         lastCurrentPrice = price;
+
         setText("currentPrice", formatPrice(price));
-        setText("marketCap", formatMoney(marketCap));
+
+        // FDV estimate = token price × total supply.
+        setText(
+          "marketCap",
+          formatMoney(price * TOTAL_SUPPLY)
+        );
+
         updatePriceLine(price);
       }
 
       if (Number.isFinite(volume) && volume >= 0) {
         setText("volume24h", formatMoney(volume));
       }
-
-      const change = Number(data.change24h);
 
       if (Number.isFinite(change)) {
         const sign = change > 0 ? "+" : "";
@@ -477,21 +466,24 @@
         const changeElement = $("priceChange");
 
         if (changeElement) {
-          changeElement.style.color = change > 0
-            ? "#22c55e"
-            : change < 0
-              ? "#ef4444"
-              : "";
+          changeElement.style.color =
+            change > 0
+              ? "#20d6a0"
+              : change < 0
+                ? "#ff647c"
+                : "";
         }
       }
     }
 
     function normalizeCandles(items) {
-      if (!Array.isArray(items)) return [];
+      if (!Array.isArray(items)) {
+        return [];
+      }
 
-      return items
+      const normalized = items
         .map((item) => {
-          const time = Number(
+          const rawTime = Number(
             item.time ?? item.timestamp ?? item.t
           );
 
@@ -499,17 +491,21 @@
           const high = Number(item.high ?? item.h);
           const low = Number(item.low ?? item.l);
           const close = Number(item.close ?? item.c);
-          const volume = Number(item.volume ?? item.v ?? 0);
+          const rawVolume = Number(item.volume ?? item.v ?? 0);
+
+          const time = rawTime > 100000000000
+            ? Math.floor(rawTime / 1000)
+            : Math.floor(rawTime);
 
           return {
-            time: time > 100000000000
-              ? Math.floor(time / 1000)
-              : Math.floor(time),
+            time,
             open,
             high,
             low,
             close,
-            volume: Number.isFinite(volume) ? volume : 0
+            volume: Number.isFinite(rawVolume) && rawVolume >= 0
+              ? rawVolume
+              : 0
           };
         })
         .filter((candle) =>
@@ -523,28 +519,45 @@
           candle.high > 0 &&
           candle.low > 0 &&
           candle.close > 0 &&
-          candle.high >= candle.low
+          candle.high >= candle.low &&
+          candle.high >= candle.open &&
+          candle.high >= candle.close &&
+          candle.low <= candle.open &&
+          candle.low <= candle.close
         )
-        .sort((a, b) => a.time - b.time)
-        .filter((candle, index, array) =>
-          index === 0 || candle.time !== array[index - 1].time
-        );
+        .sort((a, b) => a.time - b.time);
+
+      // Keep only one candle for each timestamp.
+      const unique = [];
+
+      for (const candle of normalized) {
+        if (
+          unique.length === 0 ||
+          unique[unique.length - 1].time !== candle.time
+        ) {
+          unique.push(candle);
+        } else {
+          unique[unique.length - 1] = candle;
+        }
+      }
+
+      return unique;
     }
 
-    function updateChart(candles) {
-      if (!candleSeries || !volumeSeries) return;
+    function updateChart(items) {
+      if (!candleSeries || !volumeSeries || !chart) {
+        return;
+      }
 
-      const normalized = normalizeCandles(candles);
+      const candles = normalizeCandles(items);
 
-      if (!normalized.length) {
+      if (candles.length === 0) {
         console.warn("No valid candle data received.");
         return;
       }
 
-      candlesCache = normalized;
-
       candleSeries.setData(
-        normalized.map((candle) => ({
+        candles.map((candle) => ({
           time: candle.time,
           open: candle.open,
           high: candle.high,
@@ -553,15 +566,15 @@
         }))
       );
 
-      volumeCache = normalized.map((candle) => ({
-        time: candle.time,
-        value: candle.volume,
-        color: candle.close >= candle.open
-          ? "rgba(34,197,94,0.55)"
-          : "rgba(239,68,68,0.55)"
-      }));
-
-      volumeSeries.setData(volumeCache);
+      volumeSeries.setData(
+        candles.map((candle) => ({
+          time: candle.time,
+          value: candle.volume,
+          color: candle.close >= candle.open
+            ? "rgba(32,214,160,0.55)"
+            : "rgba(255,100,124,0.55)"
+        }))
+      );
 
       if (lastCurrentPrice !== null) {
         updatePriceLine(lastCurrentPrice);
@@ -570,14 +583,14 @@
       chart.timeScale().fitContent();
       chartReady = true;
     }
-        async function fetchChartData() {
-      if (refreshInProgress) return;
 
-      refreshInProgress = true;
+    async function fetchChartData() {
+      const requestId = ++latestRequestId;
+      const requestedRange = currentRange;
 
       try {
-        const url = API_URL + "?range=" +
-          encodeURIComponent(currentRange) +
+        const url = API_URL +
+          "?range=" + encodeURIComponent(requestedRange) +
           "&_=" + Date.now();
 
         const response = await fetch(url, {
@@ -595,6 +608,14 @@
         }
 
         const data = await response.json();
+
+        // Ignore a response if a newer request has started.
+        if (
+          requestId !== latestRequestId ||
+          requestedRange !== currentRange
+        ) {
+          return;
+        }
 
         if (!data || typeof data !== "object") {
           throw new Error("Invalid API response.");
@@ -615,17 +636,21 @@
         if (candles.length > 0) {
           updateChart(candles);
         } else {
-          console.warn("The API returned no candle data.");
+          console.warn(
+            "The API returned no candle data for " +
+            requestedRange
+          );
+        }
+      } catch (error) {
+        if (requestId !== latestRequestId) {
+          return;
         }
 
-      } catch (error) {
         console.error("MOJ chart refresh failed:", error);
 
         if (!chartReady) {
           setText("currentPrice", "$—");
         }
-      } finally {
-        refreshInProgress = false;
       }
     }
 
@@ -639,6 +664,7 @@
       }
 
       currentRange = range;
+      chartReady = false;
 
       const button5m = $("btn5m");
       const button24h = $("btn24h");
@@ -652,9 +678,27 @@
       }
 
       if (chart) {
-        chart.timeScale().fitContent();
+        if (currentPriceLine && candleSeries) {
+          candleSeries.removePriceLine(currentPriceLine);
+          currentPriceLine = null;
+        }
+
+        if (candleSeries) {
+          candleSeries.setData([]);
+        }
+
+        if (volumeSeries) {
+          volumeSeries.setData([]);
+        }
+
+        chart.applyOptions({
+          timeScale: {
+            secondsVisible: range === "5m"
+          }
+        });
       }
 
+      // Start a fresh request for the selected range.
       fetchChartData();
     }
 
@@ -663,23 +707,25 @@
 
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(address)
-          .then(() => {
-            const button = $("copyContract");
-
-            if (button) {
-              button.textContent = "Copied!";
-
-              setTimeout(() => {
-                button.textContent = "Copy CA";
-              }, 1800);
-            }
-          })
-          .catch(() => {
-            fallbackCopy(address);
-          });
+          .then(() => showCopySuccess())
+          .catch(() => fallbackCopy(address));
       } else {
         fallbackCopy(address);
       }
+    }
+
+    function showCopySuccess() {
+      const button = $("copyContract");
+
+      if (!button) {
+        return;
+      }
+
+      button.textContent = "Copied!";
+
+      setTimeout(() => {
+        button.textContent = "Copy CA";
+      }, 1800);
     }
 
     function fallbackCopy(text) {
@@ -690,19 +736,13 @@
       textarea.style.opacity = "0";
 
       document.body.appendChild(textarea);
-
       textarea.select();
 
       try {
-        const successful = document.execCommand("copy");
-        const button = $("copyContract");
-
-        if (button && successful) {
-          button.textContent = "Copied!";
-
-          setTimeout(() => {
-            button.textContent = "Copy CA";
-          }, 1800);
+        if (document.execCommand("copy")) {
+          showCopySuccess();
+        } else {
+          console.error("Copy command failed.");
         }
       } catch (error) {
         console.error("Copy failed:", error);
@@ -724,13 +764,14 @@
       ) {
         chartElement.textContent =
           "Chart library failed to load. Please refresh the page.";
+
         console.error("LightweightCharts is unavailable.");
         return;
       }
 
       chart = LightweightCharts.createChart(chartElement, {
         width: chartElement.clientWidth,
-        height: 360,
+        height: chartElement.clientHeight,
 
         layout: {
           background: {
@@ -759,13 +800,12 @@
         },
 
         crosshair: {
-          mode: LightweightCharts.CrosshairMode
-            ? LightweightCharts.CrosshairMode.Normal
-            : 0
+          mode: LightweightCharts.CrosshairMode.Normal
         },
 
         localization: {
           priceFormatter: (price) => formatPrice(price),
+
           timeFormatter: (time) => {
             if (typeof time === "number") {
               return new Date(time * 1000).toLocaleString("ja-JP");
@@ -776,45 +816,21 @@
         }
       });
 
-      if (typeof chart.addSeries === "function") {
-        candleSeries = chart.addSeries(
-          LightweightCharts.CandlestickSeries,
-          {
-            upColor: "#22c55e",
-            downColor: "#ef4444",
-            borderUpColor: "#22c55e",
-            borderDownColor: "#ef4444",
-            wickUpColor: "#22c55e",
-            wickDownColor: "#ef4444"
-          }
-        );
+      candleSeries = chart.addCandlestickSeries({
+        upColor: "#20d6a0",
+        downColor: "#ff647c",
+        borderUpColor: "#20d6a0",
+        borderDownColor: "#ff647c",
+        wickUpColor: "#20d6a0",
+        wickDownColor: "#ff647c"
+      });
 
-        volumeSeries = chart.addSeries(
-          LightweightCharts.HistogramSeries,
-          {
-            priceFormat: {
-              type: "volume"
-            },
-            priceScaleId: ""
-          }
-        );
-      } else {
-        candleSeries = chart.addCandlestickSeries({
-          upColor: "#22c55e",
-          downColor: "#ef4444",
-          borderUpColor: "#22c55e",
-          borderDownColor: "#ef4444",
-          wickUpColor: "#22c55e",
-          wickDownColor: "#ef4444"
-        });
-
-        volumeSeries = chart.addHistogramSeries({
-          priceFormat: {
-            type: "volume"
-          },
-          priceScaleId: ""
-        });
-      }
+      volumeSeries = chart.addHistogramSeries({
+        priceFormat: {
+          type: "volume"
+        },
+        priceScaleId: ""
+      });
 
       volumeSeries.priceScale().applyOptions({
         scaleMargins: {
@@ -823,19 +839,35 @@
         }
       });
 
-      const resizeObserver = new ResizeObserver(() => {
-        if (!chart || !chartElement) return;
+      if (typeof ResizeObserver !== "undefined") {
+        const resizeObserver = new ResizeObserver(() => {
+          if (!chart || !chartElement) {
+            return;
+          }
 
-        chart.applyOptions({
-          width: chartElement.clientWidth
+          chart.applyOptions({
+            width: chartElement.clientWidth,
+            height: chartElement.clientHeight
+          });
         });
-      });
 
-      resizeObserver.observe(chartElement);
+        resizeObserver.observe(chartElement);
+      } else {
+        window.addEventListener("resize", () => {
+          if (!chart || !chartElement) {
+            return;
+          }
+
+          chart.applyOptions({
+            width: chartElement.clientWidth,
+            height: chartElement.clientHeight
+          });
+        });
+      }
     }
 
     function startAutoRefresh() {
-      if (refreshTimer) {
+      if (refreshTimer !== null) {
         clearInterval(refreshTimer);
       }
 
@@ -864,7 +896,10 @@
       }
 
       if (copyButton) {
-        copyButton.addEventListener("click", copyContractAddress);
+        copyButton.addEventListener(
+          "click",
+          copyContractAddress
+        );
       }
 
       initializeChart();
