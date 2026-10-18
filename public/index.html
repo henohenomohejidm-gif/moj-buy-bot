@@ -486,35 +486,39 @@
 
   const CONTRACT_ADDRESS =
     "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
+
   const TOTAL_SUPPLY = 10_000_000_000;
   const REFRESH_MS = 30_000;
-  const API_URL = "/api/chart";
   const CANDLE_SECONDS = 300;
+  const API_URL = "/api/chart";
 
-  const el = (id) => document.getElementById(id);
-  const chartEl = el("chart");
+  const $ = (id) => document.getElementById(id);
+  const chartEl = $("chart");
 
-  let chart = null;
-  let candlesSeries = null;
-  let volumeSeries = null;
-  let ma7Series = null;
-  let ma25Series = null;
-  let ma99Series = null;
-  let currentPriceLine = null;
-  let refreshTimer = null;
-  let requestController = null;
+  let chart;
+  let candleSeries;
+  let volumeSeries;
+  let ma7Series;
+  let ma25Series;
+  let ma99Series;
+  let currentPriceLine;
+  let refreshTimer;
+  let resizeObserver;
+  let requestController;
+  let requestInProgress = false;
+  let firstLoad = true;
   let lastCandles = [];
   let lastPayload = null;
-  let firstSuccessfulLoad = true;
-  let previousLastTime = null;
-  let requestInProgress = false;
-  let userMovedTimeScale = false;
-  let manualPriceScale = false;
+  let lastSuccessfulUpdate = null;
+  let manualScaleMargins = { top: 0.10, bottom: 0.22 };
 
-  function numberOrNull(value) {
-    if (value === null || value === undefined || value === "") return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
+  function num(value) {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+
+    const result = Number(value);
+    return Number.isFinite(result) ? result : null;
   }
 
   function trimDecimal(value) {
@@ -524,7 +528,7 @@
   }
 
   function formatPrice(value) {
-    const n = numberOrNull(value);
+    const n = num(value);
 
     if (n === null) return "—";
     if (n === 0) return "0";
@@ -538,12 +542,12 @@
     }
 
     if (abs >= 1) {
-      return trimDecimal(n.toFixed(6));
+      return trimDecimal(n.toFixed(8));
     }
 
     const decimals = Math.min(
       18,
-      Math.max(6, Math.ceil(-Math.log10(abs)) + 5)
+      Math.max(8, Math.ceil(-Math.log10(abs)) + 5)
     );
 
     const fixed = n.toFixed(decimals);
@@ -556,7 +560,7 @@
   }
 
   function formatMoney(value) {
-    const n = numberOrNull(value);
+    const n = num(value);
 
     if (n === null || n < 0) return "$—";
     if (n >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
@@ -570,36 +574,259 @@
   }
 
   function setStatus(message, ok = true) {
-    el("chart-status-text").textContent = message;
-    el("status-indicator").style.background =
+    $("chart-status-text").textContent = message;
+    $("status-indicator").style.background =
       ok ? "var(--green)" : "var(--red)";
   }
 
-  function setMetricText(id, value) {
-    el(id).textContent = value;
+  function normalizeTime(value) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return Math.floor(value > 1e12 ? value / 1000 : value);
+    }
+
+    if (typeof value !== "string" || !value.trim()) {
+      return null;
+    }
+
+    const s = value.trim();
+    const numeric = Number(s);
+
+    if (Number.isFinite(numeric)) {
+      return Math.floor(numeric > 1e12 ? numeric / 1000 : numeric);
+    }
+
+    const parsed = Date.parse(s);
+    return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
+  }
+
+  function normalizeCandle(row) {
+    if (!row || typeof row !== "object") return null;
+
+    const time = normalizeTime(
+      row.time ??
+      row.timestamp ??
+      row.t ??
+      row.startTime ??
+      row.openTime ??
+      row.bucket ??
+      row.date
+    );
+
+    const open = num(row.open ?? row.open_usd ?? row.o);
+    const high = num(row.high ?? row.high_usd ?? row.h);
+    const low = num(row.low ?? row.low_usd ?? row.l);
+    const close = num(row.close ?? row.close_usd ?? row.c);
+
+    const volume = num(
+      row.volume ??
+      row.volume_usd ??
+      row.volumeUsd ??
+      row.quoteVolume ??
+      row.vol ??
+      row.v
+    );
+
+    if (
+      time === null ||
+      time <= 0 ||
+      open === null ||
+      high === null ||
+      low === null ||
+      close === null ||
+      open <= 0 ||
+      high <= 0 ||
+      low <= 0 ||
+      close <= 0 ||
+      high < Math.max(open, close) ||
+      low > Math.min(open, close) ||
+      high < low
+    ) {
+      return null;
+    }
+
+    return {
+      time,
+      open,
+      high,
+      low,
+      close,
+      volume: Math.max(0, volume ?? 0)
+    };
+  }
+
+  function extractCandles(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (!payload || typeof payload !== "object") return [];
+
+    const keys = [
+      "candles",
+      "data",
+      "items",
+      "ohlcv",
+      "result",
+      "chart"
+    ];
+
+    for (const key of keys) {
+      const value = payload[key];
+
+      if (Array.isArray(value)) return value;
+
+      if (value && typeof value === "object") {
+        for (const nestedKey of [
+          "candles",
+          "data",
+          "items",
+          "ohlcv"
+        ]) {
+          if (Array.isArray(value[nestedKey])) {
+            return value[nestedKey];
+          }
+        }
+      }
+    }
+
+    return [];
+  }
+
+  function normalizeCandles(payload) {
+    const map = new Map();
+
+    for (const row of extractCandles(payload)) {
+      const candle = normalizeCandle(row);
+      if (!candle) continue;
+
+      // Keep the last record for a duplicated timestamp.
+      map.set(candle.time, candle);
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => a.time - b.time);
+  }
+
+  function sma(candles, period) {
+    const result = [];
+    let sum = 0;
+
+    for (let i = 0; i < candles.length; i++) {
+      sum += candles[i].close;
+
+      if (i >= period) {
+        sum -= candles[i - period].close;
+      }
+
+      if (i >= period - 1) {
+        result.push({
+          time: candles[i].time,
+          value: sum / period
+        });
+      }
+    }
+
+    return result;
+  }
+
+  function metric(payload, keys) {
+    for (const key of keys) {
+      const value = num(payload?.[key]);
+
+      if (value !== null && value >= 0) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  function updateMetrics(candles, payload) {
+    if (!candles.length) return;
+
+    const first = candles[0];
+    const last = candles[candles.length - 1];
+
+    const currentPrice = num(
+      payload?.currentPrice ?? payload?.price
+    );
+
+    const displayedPrice =
+      currentPrice !== null && currentPrice > 0
+        ? currentPrice
+        : last.close;
+
+    $("price").textContent = "$" + formatPrice(displayedPrice);
+    $("fdv").textContent =
+      formatMoney(displayedPrice * TOTAL_SUPPLY);
+
+    const change = num(payload?.change24h);
+
+    const changeEl = $("price-change");
+
+    if (change !== null) {
+      changeEl.textContent =
+        "24H " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+
+      changeEl.className =
+        "change " + (change >= 0 ? "positive" : "negative");
+    } else {
+      changeEl.textContent = "24H —";
+      changeEl.className = "change neutral";
+    }
+
+    const high = Math.max(...candles.map((c) => c.high));
+    const low = Math.min(...candles.map((c) => c.low));
+
+    const volume = metric(payload, [
+      "volume24h",
+      "volumeUsd24h",
+      "totalVolume24h",
+      "volume_24h"
+    ]);
+
+    $("volume").textContent = formatMoney(
+      volume ?? candles.reduce((sum, c) => sum + c.volume, 0)
+    );
+
+    $("high").textContent = "$" + formatPrice(
+      metric(payload, ["high24h", "highUsd24h", "high_24h"]) ?? high
+    );
+
+    $("low").textContent = "$" + formatPrice(
+      metric(payload, ["low24h", "lowUsd24h", "low_24h"]) ?? low
+    );
+  }
+
+  function applyMovingAverageVisibility() {
+    ma7Series.applyOptions({
+      visible: $("toggle-ma7").checked
+    });
+
+    ma25Series.applyOptions({
+      visible: $("toggle-ma25").checked
+    });
+
+    ma99Series.applyOptions({
+      visible: $("toggle-ma99").checked
+    });
   }
 
   function createChart() {
-    if (!window.LightweightCharts || !chartEl) {
+    if (!window.LightweightCharts) {
       setStatus("Chart library failed to load", false);
-      return;
+      return false;
     }
 
-    const dotted = LightweightCharts.LineStyle.Dotted;
+    const L = window.LightweightCharts;
+    const dotted = L.LineStyle.Dotted;
 
-    chart = LightweightCharts.createChart(chartEl, {
+    chart = L.createChart(chartEl, {
       width: chartEl.clientWidth || 600,
       height: chartEl.clientHeight || 390,
 
       layout: {
-        background: {
-          type: "solid",
-          color: "#000000"
-        },
+        background: { type: "solid", color: "#000000" },
         textColor: "#d3d8e0",
         fontFamily: "Inter, system-ui, sans-serif",
-        fontSize: 11,
-        attributionLogo: false
+        fontSize: 11
       },
 
       grid: {
@@ -619,11 +846,8 @@
         autoScale: true,
         entireTextOnly: false,
         minimumWidth: 92,
-        scaleMargins: {
-          top: 0.10,
-          bottom: 0.22
-        },
-        mode: LightweightCharts.PriceScaleMode.Normal
+        scaleMargins: manualScaleMargins,
+        mode: L.PriceScaleMode.Normal
       },
 
       timeScale: {
@@ -633,13 +857,11 @@
         rightOffset: 4,
         barSpacing: 8,
         minBarSpacing: 3,
-        lockVisibleTimeRangeOnResize: true,
-        fixLeftEdge: false,
-        fixRightEdge: false
+        lockVisibleTimeRangeOnResize: true
       },
 
       crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
+        mode: L.CrosshairMode.Normal,
         vertLine: {
           color: "rgba(54,230,160,.48)",
           width: 1,
@@ -662,7 +884,7 @@
         mouseWheel: true,
         pressedMouseMove: true,
         horzTouchDrag: true,
-        vertTouchDrag: false
+        vertTouchDrag: true
       },
 
       handleScale: {
@@ -675,19 +897,17 @@
       }
     });
 
+    /*
+     * Keep minMove within a safe numeric range.
+     * Custom formatter preserves tiny MOJ prices.
+     */
     const precisePriceFormat = {
       type: "custom",
-      minMove: 1e-18,
+      minMove: 1e-12,
       formatter: formatPrice
     };
 
-    /*
-     * Rising candle:
-     *   green border and wick, black/hollow body.
-     * Falling candle:
-     *   green border and wick, white body.
-     */
-    candlesSeries = chart.addCandlestickSeries({
+    candleSeries = chart.addCandlestickSeries({
       upColor: "#000000",
       downColor: "#ffffff",
       borderUpColor: "#36e6a0",
@@ -697,7 +917,6 @@
       borderVisible: true,
       wickVisible: true,
       priceFormat: precisePriceFormat,
-      priceLineColor: "#68a7ff",
       priceLineVisible: false,
       lastValueVisible: true
     });
@@ -733,315 +952,170 @@
     });
 
     volumeSeries = chart.addHistogramSeries({
-      priceFormat: {
-        type: "volume"
-      },
       priceScaleId: "volume",
+      priceFormat: { type: "volume" },
       lastValueVisible: false,
       priceLineVisible: false,
       base: 0
     });
 
     chart.priceScale("volume").applyOptions({
-      scaleMargins: {
-        top: 0.84,
-        bottom: 0
-      },
+      scaleMargins: { top: 0.84, bottom: 0 },
       visible: false,
       borderVisible: false
     });
 
-    el("toggle-ma7").addEventListener("change", (event) => {
-      ma7Series.applyOptions({ visible: event.target.checked });
-    });
+    $("toggle-ma7").addEventListener("change", applyMovingAverageVisibility);
+    $("toggle-ma25").addEventListener("change", applyMovingAverageVisibility);
+    $("toggle-ma99").addEventListener("change", applyMovingAverageVisibility);
 
-    el("toggle-ma25").addEventListener("change", (event) => {
-      ma25Series.applyOptions({ visible: event.target.checked });
-    });
+    applyMovingAverageVisibility();
 
-    el("toggle-ma99").addEventListener("change", (event) => {
-      ma99Series.applyOptions({ visible: event.target.checked });
-    });
+    resizeObserver = new ResizeObserver(() => {
+      if (!chart || !chartEl.clientWidth) return;
 
-    chart.timeScale().subscribeVisibleTimeRangeChange(() => {
-      if (!firstSuccessfulLoad) {
-        userMovedTimeScale = true;
-      }
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (chart && chartEl.clientWidth > 0) {
-        chart.applyOptions({
-          width: chartEl.clientWidth,
-          height: chartEl.clientHeight || 390
-        });
-      }
+      chart.applyOptions({
+        width: chartEl.clientWidth,
+        height: chartEl.clientHeight || 390
+      });
     });
 
     resizeObserver.observe(chartEl);
 
-    setupVerticalTouchAdjustment();
+    setupLongPressVerticalAdjustment();
+
+    return true;
   }
 
-  function normalizeTime(value) {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return Math.floor(value > 1e12 ? value / 1000 : value);
+  /*
+   * Long press + vertical drag on touch screens adjusts the
+   * chart's vertical display margins. Desktop price-axis dragging
+   * is handled natively by Lightweight Charts.
+   */
+  function setupLongPressVerticalAdjustment() {
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let lastY = 0;
+    let holdTimer = null;
+    let active = false;
+    let startMargins = null;
+
+    function reset() {
+      if (holdTimer !== null) {
+        clearTimeout(holdTimer);
+      }
+
+      holdTimer = null;
+      pointerId = null;
+      active = false;
+      startMargins = null;
     }
 
-    if (typeof value === "string") {
-      const trimmed = value.trim();
+    chartEl.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse" || !event.isPrimary) return;
 
-      if (trimmed !== "") {
-        const numeric = Number(trimmed);
+      reset();
 
-        if (Number.isFinite(numeric)) {
-          return Math.floor(numeric > 1e12 ? numeric / 1000 : numeric);
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+      lastY = event.clientY;
+
+      holdTimer = setTimeout(() => {
+        if (pointerId === null) return;
+
+        active = true;
+        startMargins = { ...manualScaleMargins };
+
+        try {
+          chartEl.setPointerCapture(pointerId);
+        } catch (_) {}
+      }, 450);
+    });
+
+    chartEl.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== pointerId) return;
+
+      if (!active) {
+        if (
+          Math.abs(event.clientX - startX) > 10 ||
+          Math.abs(event.clientY - startY) > 10
+        ) {
+          reset();
         }
+
+        return;
       }
 
-      const parsed = Date.parse(value);
+      event.preventDefault();
 
-      if (Number.isFinite(parsed)) {
-        return Math.floor(parsed / 1000);
-      }
-    }
+      const dy = event.clientY - lastY;
+      lastY = event.clientY;
 
-    return null;
-  }
+      const height = Math.max(1, chartEl.clientHeight);
+      const change = dy / height;
 
-  function normalizeCandle(item) {
-    if (!item || typeof item !== "object") return null;
+      /*
+       * Move the plot margins in opposite directions to change
+       * the visible vertical scale without modifying price data.
+       */
+      const top = Math.max(
+        0.02,
+        Math.min(0.35, manualScaleMargins.top + change)
+      );
 
-    const time = normalizeTime(
-      item.time ??
-      item.timestamp ??
-      item.t ??
-      item.startTime ??
-      item.openTime ??
-      item.bucket ??
-      item.date
-    );
+      const bottom = Math.max(
+        0.05,
+        Math.min(0.45, manualScaleMargins.bottom - change)
+      );
 
-    const open = numberOrNull(item.open ?? item.o);
-    const high = numberOrNull(item.high ?? item.h);
-    const low = numberOrNull(item.low ?? item.l);
-    const close = numberOrNull(item.close ?? item.c);
+      if (top + bottom > 0.75) return;
 
-    const volume = numberOrNull(
-      item.volume ??
-      item.vol ??
-      item.v ??
-      item.volumeUsd ??
-      item.quoteVolume
-    );
+      manualScaleMargins = { top, bottom };
 
-    if (
-      time === null ||
-      open === null ||
-      high === null ||
-      low === null ||
-      close === null
-    ) {
-      return null;
-    }
+      chart.priceScale("right").applyOptions({
+        autoScale: true,
+        scaleMargins: manualScaleMargins
+      });
+    }, { passive: false });
 
-    if (
-      time <= 0 ||
-      open <= 0 ||
-      high <= 0 ||
-      low <= 0 ||
-      close <= 0 ||
-      high < Math.max(open, close) ||
-      low > Math.min(open, close) ||
-      high < low
-    ) {
-      return null;
-    }
-
-    return {
-      candle: { time, open, high, low, close },
-      volume: Math.max(0, volume ?? 0)
-    };
-  }
-
-  function extractCandles(payload) {
-    if (Array.isArray(payload)) return payload;
-    if (!payload || typeof payload !== "object") return [];
-
-    const candidates = [
-      payload.candles,
-      payload.data,
-      payload.items,
-      payload.ohlcv,
-      payload.result,
-      payload.chart
-    ];
-
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate)) return candidate;
-
-      if (candidate && typeof candidate === "object") {
-        for (const key of ["candles", "data", "items", "ohlcv"]) {
-          if (Array.isArray(candidate[key])) return candidate[key];
-        }
-      }
-    }
-
-    return [];
-  }
-
-  function normalizeCandles(payload) {
-    const normalized = extractCandles(payload)
-      .map(normalizeCandle)
-      .filter(Boolean)
-      .sort((a, b) => a.candle.time - b.candle.time);
-
-    /*
-     * Duplicate timestamps are collapsed.
-     * Missing intervals are deliberately NOT filled with synthetic candles.
-     */
-    const unique = new Map();
-
-    for (const item of normalized) {
-      unique.set(item.candle.time, item);
-    }
-
-    return Array.from(unique.values());
-  }
-
-  function calculateMovingAverage(candles, period) {
-    const output = [];
-    let sum = 0;
-
-    for (let i = 0; i < candles.length; i++) {
-      sum += candles[i].candle.close;
-
-      if (i >= period) {
-        sum -= candles[i - period].candle.close;
-      }
-
-      if (i >= period - 1) {
-        output.push({
-          time: candles[i].candle.time,
-          value: sum / period
-        });
-      }
-    }
-
-    return output;
-  }
-
-  function getPayloadMetric(payload, keys) {
-    if (!payload || typeof payload !== "object") return null;
-
-    for (const key of keys) {
-      const value = numberOrNull(payload[key]);
-
-      if (value !== null && value >= 0) {
-        return value;
-      }
-    }
-
-    return null;
-  }
-
-  function updateMetrics(candles, payload) {
-    if (!candles.length) return;
-
-    const first = candles[0].candle;
-    const last = candles[candles.length - 1].candle;
-
-    const change = first.open > 0
-      ? ((last.close - first.open) / first.open) * 100
-      : null;
-
-    setMetricText("price", "$" + formatPrice(last.close));
-    setMetricText("fdv", formatMoney(last.close * TOTAL_SUPPLY));
-
-    const changeEl = el("price-change");
-
-    if (change === null) {
-      changeEl.textContent = "24H —";
-      changeEl.className = "change neutral";
-    } else {
-      changeEl.textContent =
-        "24H " + (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
-
-      changeEl.className =
-        "change " + (change >= 0 ? "positive" : "negative");
-    }
-
-    const reportedVolume = getPayloadMetric(payload, [
-      "volume24h",
-      "volumeUsd24h",
-      "totalVolume24h",
-      "volume_24h"
-    ]);
-
-    const reportedHigh = getPayloadMetric(payload, [
-      "high24h",
-      "highUsd24h",
-      "high_24h"
-    ]);
-
-    const reportedLow = getPayloadMetric(payload, [
-      "low24h",
-      "lowUsd24h",
-      "low_24h"
-    ]);
-
-    const chartHigh = Math.max(...candles.map((item) => item.candle.high));
-    const chartLow = Math.min(...candles.map((item) => item.candle.low));
-    const summedVolume = candles.reduce((sum, item) => sum + item.volume, 0);
-
-    /*
-     * Prefer explicit 24h statistics supplied by the API.
-     * If absent, display the available chart-data fallback.
-     */
-    setMetricText("volume", formatMoney(reportedVolume ?? summedVolume));
-    setMetricText("high", "$" + formatPrice(reportedHigh ?? chartHigh));
-    setMetricText("low", "$" + formatPrice(reportedLow ?? chartLow));
-  }
-
-  function countTimeGaps(candles) {
-    let gaps = 0;
-
-    for (let i = 1; i < candles.length; i++) {
-      const difference =
-        candles[i].candle.time - candles[i - 1].candle.time;
-
-      if (difference > CANDLE_SECONDS) {
-        gaps++;
-      }
-    }
-
-    return gaps;
+    chartEl.addEventListener("pointerup", reset);
+    chartEl.addEventListener("pointercancel", reset);
+    chartEl.addEventListener("lostpointercapture", reset);
   }
 
   function renderCandles(candles, payload) {
-    if (!candlesSeries || !volumeSeries) return;
+    if (!candles.length) {
+      throw new Error("No valid 5-minute candles returned");
+    }
 
-    const candleData = candles.map((item) => item.candle);
+    candleSeries.setData(candles.map((c) => ({
+      time: c.time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close
+    })));
 
-    candlesSeries.setData(candleData);
-    ma7Series.setData(calculateMovingAverage(candles, 7));
-    ma25Series.setData(calculateMovingAverage(candles, 25));
-    ma99Series.setData(calculateMovingAverage(candles, 99));
+    ma7Series.setData(sma(candles, 7));
+    ma25Series.setData(sma(candles, 25));
+    ma99Series.setData(sma(candles, 99));
 
-    volumeSeries.setData(candles.map((item) => ({
-      time: item.candle.time,
-      value: item.volume,
-      color: item.candle.close >= item.candle.open
+    volumeSeries.setData(candles.map((c) => ({
+      time: c.time,
+      value: c.volume,
+      color: c.close >= c.open
         ? "rgba(54,230,160,.32)"
         : "rgba(255,255,255,.24)"
     })));
 
     updateMetrics(candles, payload);
 
-    const last = candles[candles.length - 1].candle;
+    const last = candles[candles.length - 1];
 
-    if (currentPriceLine === null) {
-      currentPriceLine = candlesSeries.createPriceLine({
+    if (!currentPriceLine) {
+      currentPriceLine = candleSeries.createPriceLine({
         price: last.close,
         color: "#68a7ff",
         lineWidth: 1,
@@ -1050,41 +1124,24 @@
         title: "MOJ"
       });
     } else {
-      currentPriceLine.applyOptions({
-        price: last.close,
-        title: "MOJ"
-      });
+      currentPriceLine.applyOptions({ price: last.close });
     }
 
-    if (firstSuccessfulLoad) {
+    if (firstLoad) {
       chart.timeScale().fitContent();
-      firstSuccessfulLoad = false;
-      userMovedTimeScale = false;
-    } else {
-      /*
-       * Keep the user's selected historical position when possible.
-       * Follow the newest candles only if the chart was already at the end.
-       */
-      const visibleRange = chart.timeScale().getVisibleLogicalRange();
-      const totalBars = candles.length;
-
-      const nearLatest = !userMovedTimeScale ||
-        !visibleRange ||
-        visibleRange.to >= totalBars - 3;
-
-      if (nearLatest) {
-        chart.timeScale().scrollToRealTime();
-      }
+      firstLoad = false;
     }
 
-    const gaps = countTimeGaps(candles);
+    const gaps = candles.reduce((count, candle, index) => {
+      if (index === 0) return count;
 
-    const gapText = gaps > 0
-      ? " · " + gaps + " gap(s) detected"
-      : " · no missing intervals detected";
+      return count +
+        (candle.time - candles[index - 1].time > CANDLE_SECONDS ? 1 : 0);
+    }, 0);
 
     setStatus(
-      "5-minute candles · " + candles.length + " bars" + gapText,
+      "5-minute candles · " + candles.length + " bars" +
+      (gaps ? " · " + gaps + " interval gap(s)" : ""),
       true
     );
   }
@@ -1101,11 +1158,6 @@
     requestController = new AbortController();
 
     const url = new URL(API_URL, window.location.origin);
-
-    /*
-     * Keep the chart on 5-minute candles.
-     * The API must support this request or return interval: "5m".
-     */
     url.searchParams.set("range", "5m");
     url.searchParams.set("interval", "5m");
     url.searchParams.set("coinType", CONTRACT_ADDRESS);
@@ -1114,192 +1166,81 @@
       const response = await fetch(url.toString(), {
         method: "GET",
         cache: "no-store",
-        headers: { "Accept": "application/json" },
+        headers: { Accept: "application/json" },
         signal: requestController.signal
       });
 
       if (!response.ok) {
-        throw new Error("Market API returned HTTP " + response.status);
+        let detail = "";
+
+        try {
+          const errorPayload = await response.json();
+          detail = errorPayload?.error || "";
+        } catch (_) {}
+
+        throw new Error(
+          "API HTTP " + response.status +
+          (detail ? " — " + detail : "")
+        );
       }
 
       const payload = await response.json();
 
       if (
-        payload &&
-        typeof payload === "object" &&
-        payload.interval &&
-        payload.interval !== "5m"
+        payload?.interval &&
+        payload.interval !== "5m" &&
+        payload.interval !== "5minute"
       ) {
         throw new Error(
-          "API returned " + payload.interval + " data instead of 5m candles"
+          "Expected 5-minute data, received " + payload.interval
         );
       }
 
       const candles = normalizeCandles(payload);
 
       if (!candles.length) {
-        throw new Error("No valid 5-minute candles returned by /api/chart");
+        throw new Error("API returned no valid candle records");
       }
 
-      lastPayload = payload;
       lastCandles = candles;
+      lastPayload = payload;
 
       renderCandles(candles, payload);
 
-      const latestTime = candles[candles.length - 1].candle.time;
+      lastSuccessfulUpdate = new Date();
 
-      if (previousLastTime !== null && latestTime < previousLastTime) {
-        setStatus("Warning: latest candle timestamp moved backwards", false);
-      }
-
-      previousLastTime = latestTime;
-
-      el("last-updated").textContent =
-        "Last updated: " + new Date().toLocaleTimeString();
+      $("last-updated").textContent =
+        "Last updated: " + lastSuccessfulUpdate.toLocaleTimeString();
 
     } catch (error) {
-      if (error && error.name === "AbortError") return;
+      if (error?.name === "AbortError") return;
 
       console.error("[MOJ Terminal] Chart update failed:", error);
+
       setStatus(
-        "Market data unavailable — check /api/chart and 5m interval",
+        "Market data unavailable — " + (error?.message || "request failed"),
         false
       );
 
+      // Keep the last successfully rendered chart visible.
     } finally {
       requestInProgress = false;
     }
   }
 
-  /*
-   * Long-press vertical price adjustment for touch devices.
-   * Uses the chart library's public price-scale methods when available.
-   */
-  function setupVerticalTouchAdjustment() {
-    if (!chartEl || !candlesSeries) return;
-
-    const priceScale = candlesSeries.priceScale();
-
-    if (
-      typeof priceScale.getVisibleRange !== "function" ||
-      typeof priceScale.setVisibleRange !== "function"
-    ) {
-      /*
-       * Native price-axis dragging remains enabled even if this
-       * optional touch gesture is unavailable in a particular build.
-       */
-      return;
-    }
-
-    let pointer = null;
-    let holdTimer = null;
-    let startRange = null;
-    let verticalDragActive = false;
-    let startY = 0;
-    let startX = 0;
-
-    function clearGesture() {
-      if (holdTimer !== null) {
-        clearTimeout(holdTimer);
-      }
-
-      pointer = null;
-      startRange = null;
-      verticalDragActive = false;
-      holdTimer = null;
-    }
-
-    chartEl.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse") return;
-      if (event.isPrimary === false) return;
-
-      clearGesture();
-
-      pointer = {
-        id: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
-        moved: false
-      };
-
-      startX = event.clientX;
-      startY = event.clientY;
-
-      holdTimer = setTimeout(() => {
-        if (!pointer) return;
-
-        try {
-          startRange = priceScale.getVisibleRange();
-
-          if (
-            startRange &&
-            Number.isFinite(startRange.from) &&
-            Number.isFinite(startRange.to) &&
-            startRange.to > startRange.from
-          ) {
-            verticalDragActive = true;
-          }
-        } catch (_) {
-          verticalDragActive = false;
-        }
-      }, 400);
-    }, { passive: true });
-
-    chartEl.addEventListener("pointermove", (event) => {
-      if (!pointer || event.pointerId !== pointer.id) return;
-
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-
-      if (!verticalDragActive && Math.hypot(dx, dy) > 12) {
-        clearGesture();
-        return;
-      }
-
-      if (!verticalDragActive || !startRange) return;
-
-      event.preventDefault();
-
-      const height = Math.max(1, chartEl.clientHeight);
-      const span = startRange.to - startRange.from;
-      const shift = (dy / height) * span;
-
-      try {
-        priceScale.setAutoScale(false);
-        priceScale.setVisibleRange({
-          from: startRange.from + shift,
-          to: startRange.to + shift
-        });
-
-        manualPriceScale = true;
-      } catch (error) {
-        console.debug("Touch price-scale adjustment unavailable", error);
-      }
-    }, { passive: false });
-
-    chartEl.addEventListener("pointerup", (event) => {
-      if (pointer && event.pointerId === pointer.id) {
-        clearGesture();
-      }
-    });
-
-    chartEl.addEventListener("pointercancel", clearGesture);
-    chartEl.addEventListener("lostpointercapture", clearGesture);
-  }
-
-  el("copy-btn").addEventListener("click", async () => {
-    const button = el("copy-btn");
+  $("copy-btn").addEventListener("click", async () => {
+    const button = $("copy-btn");
+    let success = false;
 
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(CONTRACT_ADDRESS);
-        button.textContent = "COPIED!";
-      } else {
-        throw new Error("Clipboard API unavailable");
+        success = true;
       }
-    } catch (_) {
-      const input = document.createElement("textarea");
+    } catch (_) {}
 
+    if (!success) {
+      const input = document.createElement("textarea");
       input.value = CONTRACT_ADDRESS;
       input.style.position = "fixed";
       input.style.left = "-9999px";
@@ -1307,41 +1248,39 @@
       document.body.appendChild(input);
       input.select();
 
-      let success = false;
-
       try {
         success = document.execCommand("copy");
-      } catch (_) {
-        success = false;
-      }
+      } catch (_) {}
 
       input.remove();
-      button.textContent = success ? "COPIED!" : "COPY FAILED";
     }
 
-    window.setTimeout(() => {
+    button.textContent = success ? "COPIED!" : "COPY FAILED";
+
+    setTimeout(() => {
       button.textContent = "COPY CA";
     }, 1800);
   });
 
   function start() {
-    createChart();
-
-    if (!chart) return;
+    if (!createChart()) return;
 
     fetchChartData();
 
-    if (refreshTimer) {
-      window.clearInterval(refreshTimer);
-    }
+    if (refreshTimer) clearInterval(refreshTimer);
 
-    refreshTimer = window.setInterval(fetchChartData, REFRESH_MS);
+    refreshTimer = setInterval(fetchChartData, REFRESH_MS);
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      fetchChartData();
-    }
+    if (!document.hidden) fetchChartData();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (refreshTimer) clearInterval(refreshTimer);
+    if (resizeObserver) resizeObserver.disconnect();
+    if (requestController) requestController.abort();
+    if (chart) chart.remove();
   });
 
   if (document.readyState === "loading") {
