@@ -1,343 +1,887 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1018">
-<title>MOJ | Henohenomoheji</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
-<style>
-:root{color-scheme:dark;--bg:#0b1018;--panel:#151d29;--border:#273548;--text:#edf3fb;--muted:#91a0b5;--accent:#8cf5c5}
-*{box-sizing:border-box}
-body{margin:0;padding:18px 12px 28px;min-height:100vh;background:radial-gradient(ellipse at top,rgba(45,75,105,.18),transparent 55%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:520px;margin:0 auto}
-.brand{text-align:center;padding:18px 0 20px}
-.logo{font-size:42px}
-h1{margin:8px 0 5px;font-size:25px;letter-spacing:.04em}
-.subtitle{color:var(--muted);font-size:13px}
-.network{display:inline-block;margin-top:12px;padding:6px 11px;border:1px solid #304357;border-radius:99px;color:var(--accent);font-size:11px}
-.card{background:linear-gradient(160deg,rgba(26,37,53,.98),rgba(17,25,37,.98));border:1px solid var(--border);border-radius:18px;padding:17px;margin:14px 0;box-shadow:0 12px 30px rgba(0,0,0,.16)}
-.label{color:var(--muted);font-size:12px;margin-bottom:10px}
-.address{font-size:12px;line-height:1.7;overflow-wrap:anywhere;user-select:text;color:#dce6f4}
-button,.button{display:flex;align-items:center;justify-content:center;width:100%;min-height:46px;padding:12px 15px;border:1px solid transparent;border-radius:11px;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
-button{margin-top:13px;background:#29384c;color:white;border-color:#35465d}
-.button{margin-top:11px;background:var(--accent);color:#0b2118}
-.secondary{background:#1c2939;color:var(--text);border-color:#34465d}
-#status{text-align:center;min-height:18px;color:var(--accent);font-size:12px;margin-top:8px}
-#authStatus{line-height:1.6;overflow-wrap:anywhere;font-size:13px}
-#authStatus strong{color:var(--accent)}
-.note{text-align:center;color:var(--muted);font-size:11px;margin-top:22px}
-.chart-card{padding:0;overflow:hidden}
-.chart-topbar{padding:16px 15px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(63,81,103,.45)}
-.chart-title{font-size:15px;font-weight:750}
-.chart-subtitle{color:var(--muted);font-size:11px;margin-top:5px}
-.live-pill{display:inline-flex;align-items:center;gap:6px;color:var(--accent);border:1px solid #315344;background:rgba(29,95,68,.14);border-radius:99px;padding:5px 8px;font-size:9px;letter-spacing:.06em;white-space:nowrap}
-.live-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(140,245,197,.6)}
-.chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:rgba(9,14,22,.22);border-bottom:1px solid rgba(63,81,103,.32)}
-.timeframe{display:flex;gap:5px;color:var(--muted);font-size:10px}
-.timeframe span{padding:5px 7px;border-radius:6px;border:1px solid transparent}
-.timeframe .active{color:var(--accent);background:rgba(140,245,197,.08);border-color:rgba(140,245,197,.2)}
-.chart-tools{display:flex;gap:12px}
-.chart-tool-link{color:#b8c6d8;text-decoration:none;font-size:10px;white-space:nowrap}
-#mojChart{width:100%;height:330px;background:#111925}
-.chart-footer{display:flex;justify-content:space-between;gap:8px;padding:9px 14px 12px;color:var(--muted);font-size:10px;line-height:1.5}
-#chartStatus{min-height:15px;overflow-wrap:anywhere}
-#chartStatus.error{color:#ff9eaa}
-.chart-credit{color:#8392a7;white-space:nowrap}
-@media(max-width:360px){body{padding-left:8px;padding-right:8px}#mojChart{height:290px}.chart-tools{gap:7px}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0e14" />
+  <title>MOJ Terminal | Henohenomoheji</title>
+
+  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0e14;
+      --panel: #111722;
+      --panel2: #151d2a;
+      --border: #253044;
+      --text: #e8edf5;
+      --muted: #8c9ab0;
+      --green: #20d6a0;
+      --red: #ff647c;
+      --blue: #4f8cff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+    .brand span {
+      color: var(--green);
+    }
+
+    .status {
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .price-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .price {
+      font-size: clamp(26px, 6vw, 38px);
+      font-weight: 800;
+      letter-spacing: -.7px;
+      overflow-wrap: anywhere;
+    }
+
+    .price-change {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .red {
+      color: var(--red);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: var(--panel2);
+      border-radius: 10px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .chart-panel {
+      padding: 14px;
+    }
+
+    .chart-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 750;
+    }
+
+    .chart-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel2);
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .chip.active {
+      border-color: var(--blue);
+      color: #8db5ff;
+    }
+
+    #chart {
+      width: 100%;
+      height: 380px;
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .link-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .link-button.primary {
+      background: var(--green);
+      color: #06140f;
+      border-color: var(--green);
+    }
+
+    .contract {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .contract code {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      padding: 18px 0 8px;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        padding: 12px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      #chart {
+        height: 320px;
+      }
+
+      .links {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-<main>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">HENOHENOMOHEJI <span>MOJ</span></div>
+      <div class="status">● SUI MAINNET</div>
+    </header>
 
-<header class="brand">
-  <div class="logo">🎭</div>
-  <h1>HENOHENOMOHEJI</h1>
-  <div class="subtitle">Community-driven token</div>
-  <div class="network">◆ SUI MAINNET</div>
-</header>
+    <section class="panel">
+      <div class="price-label">MOJ / USD · LIVE PRICE</div>
+      <div class="price" id="currentPrice">$—</div>
+      <div class="price-change" id="priceChange">24H Change: —</div>
 
-<section class="card" aria-live="polite">
-  <div class="label">Telegram User Authentication</div>
-  <div id="authStatus">Checking Telegram authentication…</div>
-</section>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">MARKET CAP</div>
+          <div class="stat-value" id="marketCap">$—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">24H VOLUME</div>
+          <div class="stat-value" id="volume24h">$—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">NETWORK</div>
+          <div class="stat-value">Sui</div>
+        </div>
+      </div>
+    </section>
 
-<section class="card">
-  <div class="label">MOJ Contract Address</div>
-  <div class="address" id="contract">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</div>
-  <button id="copyButton" type="button">Copy Contract Address</button>
-  <div id="status" role="status" aria-live="polite"></div>
-</section>
+    <section class="panel chart-panel">
+      <div class="chart-heading">
+        <div class="chart-title">MOJ / USD CHART</div>
+        <div class="chart-actions">
+          <button class="chip active" id="btn5m" type="button">5M</button>
+          <button class="chip" id="btn24h" type="button">24H</button>
+        </div>
+      </div>
 
-<section class="card chart-card">
-  <div class="chart-topbar">
-    <div>
-      <div class="chart-title">📊 MOJ / USD</div>
-      <div class="chart-subtitle">5-minute candles · Turbos market data</div>
+      <div id="chart"></div>
+
+      <div class="contract">
+        <code id="contractAddress">0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ</code>
+        <button class="chip" id="copyContract" type="button">Copy CA</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="chart-title" style="margin-bottom:12px">
+        TRADE & COMMUNITY
+      </div>
+
+      <div class="links">
+        <a
+          class="link-button primary"
+          href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Buy MOJ ↗</a>
+
+        <a
+          class="link-button"
+          href="https://www.tradingview.com/chart/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >TradingView ↗</a>
+
+        <a
+          class="link-button"
+          href="https://suivision.xyz/coin/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ"
+          target="_blank"
+          rel="noopener noreferrer"
+        >SuiVision ↗</a>
+
+        <a
+          class="link-button"
+          href="https://t.me/heno_henomoheji"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Telegram ↗</a>
+
+        <a
+          class="link-button"
+          href="https://x.com/MOHEJI_MOJ"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Official X ↗</a>
+
+        <a
+          class="link-button"
+          href="https://moheji-website.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Official Website ↗</a>
+      </div>
+    </section>
+
+    <div class="footer">
+      HENOHENOMOHEJI (MOJ) · BUILT ON SUI
+      <br />
+      Market data may be delayed.
     </div>
-    <div class="live-pill"><span class="live-dot"></span> LIVE</div>
   </div>
-  <div class="chart-toolbar">
-    <div class="timeframe" aria-label="Chart timeframe">
-      <span class="active">5m</span>
-      <span>24H</span>
-    </div>
-    <div class="chart-tools">
-      <a class="chart-tool-link" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener noreferrer">TradingView ↗</a>
-      <a class="chart-tool-link" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">Turbos ↗</a>
-    </div>
-  </div>
-  <div id="mojChart"></div>
-  <div class="chart-footer">
-    <div id="chartStatus" role="status" aria-live="polite">Loading MOJ chart…</div>
-    <div class="chart-credit">Powered by Lightweight Charts</div>
-  </div>
-</section>
 
-<a class="button" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">📊 Open MOJ Chart on Turbos</a>
-<a class="button secondary" href="https://app.turbos.finance/fun/#/fun/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">⚡ Buy MOJ on Turbos</a>
+  <script>
+    const API_URL = "/api/chart";
+    const TOTAL_SUPPLY = 10000000000;
 
-<p class="note">Henohenomoheji (MOJ) · Built on Sui</p>
-</main>
-<script>
+    const CONTRACT =
+      "0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ";
 
-const tg=window.Telegram?.WebApp;
-tg?.ready();
-tg?.expand();
+    const TURBOS_URL =
+      "https://app.turbos.finance/fun/#/fun/" + CONTRACT;
 
-const authStatus=document.getElementById("authStatus");
+    const $ = (id) => document.getElementById(id);
 
-async function verifyTelegramUser(){
-  const initData=tg?.initData;
-  if(!initData){
-    authStatus.textContent="Open this Mini App from Telegram to verify your account.";
-    return;
-  }
+    const formatPrice = (price) => {
+      if (!Number.isFinite(price) || price <= 0) return "$—";
 
-  authStatus.textContent="Verifying Telegram account…";
+      return "$" + price.toLocaleString("en-US", {
+        maximumSignificantDigits: 8
+      });
+    };
 
-  try{
-    const response=await fetch("/api/auth",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData})
-    });
-    const result=await response.json();
+    const formatMoney = (value) => {
+      if (!Number.isFinite(value) || value < 0) return "$—";
 
-    if(!response.ok||!result.ok||!result.authenticated){
-      authStatus.textContent="Telegram verification failed. Reopen the Mini App from Telegram.";
-      return;
-    }
+      return "$" + value.toLocaleString("en-US", {
+        maximumFractionDigits: 2
+      });
+    };
 
-    const name=document.createElement("strong");
-    name.textContent=result.user.first_name||"Telegram user";
-    authStatus.replaceChildren();
-    authStatus.append("✅ Telegram verified: ",name);
+    let chart;
+    let candleSeries;
+    let volumeSeries;
+    let currentPriceLine = null;
+    let lastCurrentPrice = null;
+    let candlesCache = [];
+    let volumeCache = [];
+    let chartReady = false;
+    let refreshInProgress = false;
+        let currentRange = "5m";
+    let refreshTimer = null;
 
-    if(result.user.username){
-      authStatus.append(document.createTextNode(" (@"+result.user.username+")"));
-    }
-  }catch{
-    authStatus.textContent="Unable to verify right now. Please try again.";
-  }
-}
-verifyTelegramUser();
+    function formatTime(timestamp) {
+      const date = new Date(timestamp * 1000);
 
-document.getElementById("copyButton").addEventListener("click",async()=>{
-  const address=document.getElementById("contract").textContent;
-  const status=document.getElementById("status");
-
-  try{
-    if(tg?.WebAppClipboard?.writeText) await tg.WebAppClipboard.writeText(address);
-    else if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(address);
-    else throw new Error("Clipboard unavailable");
-
-    status.textContent="Contract address copied!";
-  }catch{
-    status.textContent="Please copy the address manually.";
-  }
-});
-
-(function initMojChart(){
-  const element=document.getElementById("mojChart");
-  const status=document.getElementById("chartStatus");
-
-  if(!window.LightweightCharts){
-    status.textContent="Chart library failed to load. Please use the Turbos chart link.";
-    status.classList.add("error");
-    return;
-  }
-
-  const chart=LightweightCharts.createChart(element,{
-    width:Math.max(280,element.clientWidth),
-    height:element.clientHeight,
-    layout:{
-      background:{type:"solid",color:"#111925"},
-      textColor:"#91a0b5",
-      fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      fontSize:11
-    },
-    grid:{
-      vertLines:{color:"rgba(74,91,114,.20)"},
-      horzLines:{color:"rgba(74,91,114,.30)"}
-    },
-    rightPriceScale:{
-      visible:true,
-      borderColor:"#2b394c",
-      autoScale:true,
-      entireTextOnly:false,
-      scaleMargins:{top:.10,bottom:.18},
-      minimumWidth:92
-    },
-    timeScale:{
-      borderColor:"#2b394c",
-      timeVisible:true,
-      secondsVisible:false,
-      rightOffset:3,
-      barSpacing:8,
-      minBarSpacing:3,
-      lockVisibleTimeRangeOnResize:true
-    },
-    crosshair:{
-      mode:LightweightCharts.CrosshairMode.Normal,
-      vertLine:{color:"rgba(140,245,197,.38)",width:1,style:2,labelBackgroundColor:"#26384a"},
-      horzLine:{color:"rgba(140,245,197,.38)",width:1,style:2,labelBackgroundColor:"#26384a"}
-    },
-    localization:{
-      priceFormatter:p=>Number(p).toFixed(11)
-    },
-    handleScroll:{
-      mouseWheel:true,
-      pressedMouseMove:true,
-      horzTouchDrag:true,
-      vertTouchDrag:false
-    },
-    handleScale:{
-      axisPressedMouseMove:true,
-      mouseWheel:true,
-      pinch:true
-    }
-  });
-
-  const candles=chart.addCandlestickSeries({
-    upColor:"#26d9a0",
-    downColor:"#ff6177",
-    borderUpColor:"#26d9a0",
-    borderDownColor:"#ff6177",
-    wickUpColor:"#26d9a0",
-    wickDownColor:"#ff6177",
-    priceFormat:{type:"price",precision:11,minMove:1e-11},
-    priceLineVisible:true,
-    lastValueVisible:true,
-    wickVisible:true,
-    borderVisible:true
-  });
-
-  const volume=chart.addHistogramSeries({
-    priceScaleId:"volume",
-    priceFormat:{type:"volume"},
-    lastValueVisible:false,
-    priceLineVisible:false,
-    base:0
-  });
-
-  chart.priceScale("volume").applyOptions({
-    scaleMargins:{top:.84,bottom:0},
-    visible:false,
-    borderVisible:false
-  });
-
-  let loading=false;
-  let firstLoad=true;
-  let lastCount=0;
-
-  async function updateChart(){
-    if(loading||document.hidden)return;
-    loading=true;
-
-    try{
-      const response=await fetch("/api/chart",{cache:"no-store"});
-      const result=await response.json();
-
-      if(!response.ok||!result.ok||!Array.isArray(result.candles)){
-        throw new Error(result.error||"Chart data unavailable");
+      if (currentRange === "24h") {
+        return date.toLocaleTimeString("ja-JP", {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
       }
-      if(!result.candles.length)throw new Error("No candle data available yet");
 
-      const rows=result.candles
-        .filter(c=>Number.isFinite(Number(c.time))&&
-          [c.open,c.high,c.low,c.close].every(v=>Number.isFinite(Number(v))&&Number(v)>0))
-        .map(c=>({
-          time:Number(c.time),
-          open:Number(c.open),
-          high:Number(c.high),
-          low:Number(c.low),
-          close:Number(c.close),
-          volume:Number.isFinite(Number(c.volume))&&Number(c.volume)>=0?Number(c.volume):0
+      return date.toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function formatVolume(value) {
+      if (!Number.isFinite(value) || value < 0) return "—";
+
+      return value.toLocaleString("en-US", {
+        maximumFractionDigits: 2
+      });
+    }
+
+    function setText(id, value) {
+      const element = $(id);
+      if (element) element.textContent = value;
+    }
+
+    function updatePriceLine(price) {
+      if (!candleSeries || !Number.isFinite(price) || price <= 0) {
+        return;
+      }
+
+      try {
+        if (currentPriceLine) {
+          candleSeries.removePriceLine(currentPriceLine);
+        }
+
+        currentPriceLine = candleSeries.createPriceLine({
+          price,
+          color: "#22c55e",
+          lineWidth: 2,
+          lineStyle: 2,
+          axisLabelVisible: true,
+          title: "MOJ"
+        });
+      } catch (error) {
+        console.error("Price line update failed:", error);
+      }
+    }
+
+    function updateMarketStats(data) {
+      const price = Number(data.price);
+      const volume = Number(data.volume24h);
+      const marketCap = Number.isFinite(price) && price > 0
+        ? price * TOTAL_SUPPLY
+        : NaN;
+
+      if (Number.isFinite(price) && price > 0) {
+        lastCurrentPrice = price;
+        setText("currentPrice", formatPrice(price));
+        setText("marketCap", formatMoney(marketCap));
+        updatePriceLine(price);
+      }
+
+      if (Number.isFinite(volume) && volume >= 0) {
+        setText("volume24h", formatMoney(volume));
+      }
+
+      const change = Number(data.change24h);
+
+      if (Number.isFinite(change)) {
+        const sign = change > 0 ? "+" : "";
+
+        setText(
+          "priceChange",
+          "24H Change: " + sign + change.toFixed(2) + "%"
+        );
+
+        const changeElement = $("priceChange");
+
+        if (changeElement) {
+          changeElement.style.color = change > 0
+            ? "#22c55e"
+            : change < 0
+              ? "#ef4444"
+              : "";
+        }
+      }
+    }
+
+    function normalizeCandles(items) {
+      if (!Array.isArray(items)) return [];
+
+      return items
+        .map((item) => {
+          const time = Number(
+            item.time ?? item.timestamp ?? item.t
+          );
+
+          const open = Number(item.open ?? item.o);
+          const high = Number(item.high ?? item.h);
+          const low = Number(item.low ?? item.l);
+          const close = Number(item.close ?? item.c);
+          const volume = Number(item.volume ?? item.v ?? 0);
+
+          return {
+            time: time > 100000000000
+              ? Math.floor(time / 1000)
+              : Math.floor(time),
+            open,
+            high,
+            low,
+            close,
+            volume: Number.isFinite(volume) ? volume : 0
+          };
+        })
+        .filter((candle) =>
+          Number.isFinite(candle.time) &&
+          candle.time > 0 &&
+          Number.isFinite(candle.open) &&
+          Number.isFinite(candle.high) &&
+          Number.isFinite(candle.low) &&
+          Number.isFinite(candle.close) &&
+          candle.open > 0 &&
+          candle.high > 0 &&
+          candle.low > 0 &&
+          candle.close > 0 &&
+          candle.high >= candle.low
+        )
+        .sort((a, b) => a.time - b.time)
+        .filter((candle, index, array) =>
+          index === 0 || candle.time !== array[index - 1].time
+        );
+    }
+
+    function updateChart(candles) {
+      if (!candleSeries || !volumeSeries) return;
+
+      const normalized = normalizeCandles(candles);
+
+      if (!normalized.length) {
+        console.warn("No valid candle data received.");
+        return;
+      }
+
+      candlesCache = normalized;
+
+      candleSeries.setData(
+        normalized.map((candle) => ({
+          time: candle.time,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close
         }))
-        .sort((a,b)=>a.time-b.time)
-        .filter((c,i,a)=>i===0||c.time!==a[i-1].time);
+      );
 
-      if(!rows.length)throw new Error("No valid candle data available");
+      volumeCache = normalized.map((candle) => ({
+        time: candle.time,
+        value: candle.volume,
+        color: candle.close >= candle.open
+          ? "rgba(34,197,94,0.55)"
+          : "rgba(239,68,68,0.55)"
+      }));
 
-      candles.setData(rows.map(c=>({
-        time:c.time,
-        open:c.open,
-        high:Math.max(c.high,c.open,c.close,c.low),
-        low:Math.min(c.low,c.open,c.close,c.high),
-        close:c.close
-      })));
+      volumeSeries.setData(volumeCache);
 
-      volume.setData(rows.map(c=>({
-        time:c.time,
-        value:c.volume,
-        color:c.close>=c.open?"rgba(38,217,160,.32)":"rgba(255,97,119,.32)"
-      })));
-
-      if(firstLoad){
-        chart.timeScale().fitContent();
-        firstLoad=false;
-      }else if(rows.length!==lastCount){
-        chart.timeScale().scrollToRealTime();
+      if (lastCurrentPrice !== null) {
+        updatePriceLine(lastCurrentPrice);
       }
 
-      lastCount=rows.length;
-      status.classList.remove("error");
-      status.textContent="Updated "+new Date().toLocaleTimeString()+" · 5m candles · refresh 60s";
-    }catch(error){
-      status.textContent="Chart update failed: "+(error.message||"Unknown error");
-      status.classList.add("error");
-    }finally{
-      loading=false;
+      chart.timeScale().fitContent();
+      chartReady = true;
     }
-  }
+        async function fetchChartData() {
+      if (refreshInProgress) return;
 
-  if(typeof ResizeObserver!=="undefined"){
-    const observer=new ResizeObserver(()=>{
-      chart.applyOptions({
-        width:Math.max(280,element.clientWidth),
-        height:element.clientHeight
+      refreshInProgress = true;
+
+      try {
+        const url = API_URL + "?range=" +
+          encodeURIComponent(currentRange) +
+          "&_=" + Date.now();
+
+        const response = await fetch(url, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            "Chart API error: HTTP " + response.status
+          );
+        }
+
+        const data = await response.json();
+
+        if (!data || typeof data !== "object") {
+          throw new Error("Invalid API response.");
+        }
+
+        if (data.error) {
+          throw new Error(String(data.error));
+        }
+
+        updateMarketStats(data);
+
+        const candles = Array.isArray(data.candles)
+          ? data.candles
+          : Array.isArray(data.data)
+            ? data.data
+            : [];
+
+        if (candles.length > 0) {
+          updateChart(candles);
+        } else {
+          console.warn("The API returned no candle data.");
+        }
+
+      } catch (error) {
+        console.error("MOJ chart refresh failed:", error);
+
+        if (!chartReady) {
+          setText("currentPrice", "$—");
+        }
+      } finally {
+        refreshInProgress = false;
+      }
+    }
+
+    function setChartRange(range) {
+      if (range !== "5m" && range !== "24h") {
+        return;
+      }
+
+      if (currentRange === range) {
+        return;
+      }
+
+      currentRange = range;
+
+      const button5m = $("btn5m");
+      const button24h = $("btn24h");
+
+      if (button5m) {
+        button5m.classList.toggle("active", range === "5m");
+      }
+
+      if (button24h) {
+        button24h.classList.toggle("active", range === "24h");
+      }
+
+      if (chart) {
+        chart.timeScale().fitContent();
+      }
+
+      fetchChartData();
+    }
+
+    function copyContractAddress() {
+      const address = CONTRACT;
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(address)
+          .then(() => {
+            const button = $("copyContract");
+
+            if (button) {
+              button.textContent = "Copied!";
+
+              setTimeout(() => {
+                button.textContent = "Copy CA";
+              }, 1800);
+            }
+          })
+          .catch(() => {
+            fallbackCopy(address);
+          });
+      } else {
+        fallbackCopy(address);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(textarea);
+
+      textarea.select();
+
+      try {
+        const successful = document.execCommand("copy");
+        const button = $("copyContract");
+
+        if (button && successful) {
+          button.textContent = "Copied!";
+
+          setTimeout(() => {
+            button.textContent = "Copy CA";
+          }, 1800);
+        }
+      } catch (error) {
+        console.error("Copy failed:", error);
+      } finally {
+        textarea.remove();
+      }
+    }
+        function initializeChart() {
+      const chartElement = $("chart");
+
+      if (!chartElement) {
+        console.error("Chart element not found.");
+        return;
+      }
+
+      if (
+        typeof LightweightCharts === "undefined" ||
+        typeof LightweightCharts.createChart !== "function"
+      ) {
+        chartElement.textContent =
+          "Chart library failed to load. Please refresh the page.";
+        console.error("LightweightCharts is unavailable.");
+        return;
+      }
+
+      chart = LightweightCharts.createChart(chartElement, {
+        width: chartElement.clientWidth,
+        height: 360,
+
+        layout: {
+          background: {
+            color: "#10151f"
+          },
+          textColor: "#9ca3af"
+        },
+
+        grid: {
+          vertLines: {
+            color: "rgba(148,163,184,0.08)"
+          },
+          horzLines: {
+            color: "rgba(148,163,184,0.08)"
+          }
+        },
+
+        rightPriceScale: {
+          borderColor: "rgba(148,163,184,0.2)"
+        },
+
+        timeScale: {
+          borderColor: "rgba(148,163,184,0.2)",
+          timeVisible: true,
+          secondsVisible: currentRange === "5m"
+        },
+
+        crosshair: {
+          mode: LightweightCharts.CrosshairMode
+            ? LightweightCharts.CrosshairMode.Normal
+            : 0
+        },
+
+        localization: {
+          priceFormatter: (price) => formatPrice(price),
+          timeFormatter: (time) => {
+            if (typeof time === "number") {
+              return new Date(time * 1000).toLocaleString("ja-JP");
+            }
+
+            return "";
+          }
+        }
       });
-    });
-    observer.observe(element);
-  }else{
-    window.addEventListener("resize",()=>{
-      chart.applyOptions({
-        width:Math.max(280,element.clientWidth),
-        height:element.clientHeight
+
+      if (typeof chart.addSeries === "function") {
+        candleSeries = chart.addSeries(
+          LightweightCharts.CandlestickSeries,
+          {
+            upColor: "#22c55e",
+            downColor: "#ef4444",
+            borderUpColor: "#22c55e",
+            borderDownColor: "#ef4444",
+            wickUpColor: "#22c55e",
+            wickDownColor: "#ef4444"
+          }
+        );
+
+        volumeSeries = chart.addSeries(
+          LightweightCharts.HistogramSeries,
+          {
+            priceFormat: {
+              type: "volume"
+            },
+            priceScaleId: ""
+          }
+        );
+      } else {
+        candleSeries = chart.addCandlestickSeries({
+          upColor: "#22c55e",
+          downColor: "#ef4444",
+          borderUpColor: "#22c55e",
+          borderDownColor: "#ef4444",
+          wickUpColor: "#22c55e",
+          wickDownColor: "#ef4444"
+        });
+
+        volumeSeries = chart.addHistogramSeries({
+          priceFormat: {
+            type: "volume"
+          },
+          priceScaleId: ""
+        });
+      }
+
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: {
+          top: 0.82,
+          bottom: 0
+        }
       });
-    });
-  }
 
-  updateChart();
-  setInterval(updateChart,60000);
+      const resizeObserver = new ResizeObserver(() => {
+        if (!chart || !chartElement) return;
 
-  document.addEventListener("visibilitychange",()=>{
-    if(!document.hidden)updateChart();
-  });
-})();
-</script>
+        chart.applyOptions({
+          width: chartElement.clientWidth
+        });
+      });
+
+      resizeObserver.observe(chartElement);
+
+      chartReady = true;
+    }
+
+    function startAutoRefresh() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+
+      fetchChartData();
+
+      refreshTimer = setInterval(() => {
+        fetchChartData();
+      }, 30000);
+    }
+
+    function initializeApp() {
+      const button5m = $("btn5m");
+      const button24h = $("btn24h");
+      const copyButton = $("copyContract");
+
+      if (button5m) {
+        button5m.addEventListener("click", () => {
+          setChartRange("5m");
+        });
+      }
+
+      if (button24h) {
+        button24h.addEventListener("click", () => {
+          setChartRange("24h");
+        });
+      }
+
+      if (copyButton) {
+        copyButton.addEventListener("click", copyContractAddress);
+      }
+
+      initializeChart();
+      startAutoRefresh();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener(
+        "DOMContentLoaded",
+        initializeApp,
+        { once: true }
+      );
+    } else {
+      initializeApp();
+    }
+  </script>
 </body>
 </html>
