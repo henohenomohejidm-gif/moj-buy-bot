@@ -1,13 +1,41 @@
+
 import { getMojOhlc24h } from "../lib/price.mjs";
 
 function toUnixSeconds(value) {
-  if (typeof value === "number" || /^\d+$/.test(String(value))) {
-    const n = Number(value);
-    return Math.floor(n > 1e12 ? n / 1000 : n);
+  if (typeof value === "number" ||
+      (typeof value === "string" && /^\d+$/.test(value))) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) return null;
+
+    return Math.floor(number > 1e12 ? number / 1000 : number);
   }
 
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+
+    return Number.isFinite(parsed)
+      ? Math.floor(parsed / 1000)
+      : null;
+  }
+
+  return null;
+}
+
+function readNumber(row, keys) {
+  for (const key of keys) {
+    const raw = row?.[key];
+
+    if (raw === undefined || raw === null || raw === "") {
+      continue;
+    }
+
+    const number = Number(raw);
+
+    if (Number.isFinite(number)) return number;
+  }
+
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -16,35 +44,35 @@ export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({
       ok: false,
-      error: "Method not allowed"
+      error: "Method not allowed",
     });
   }
 
   try {
     const rows = await getMojOhlc24h();
 
-    if (!Array.isArray(rows)) {
-      throw new Error("Invalid OHLC data format");
-    }
-
     const candles = rows.map((row) => {
-      const time = toUnixSeconds(row.timestamp ?? row.time);
-      const open = Number(row.open_usd ?? row.open);
-      const close = Number(row.close_usd ?? row.close);
-      const highValue = Number(row.high_usd ?? row.high);
-      const lowValue = Number(row.low_usd ?? row.low);
-      const volume = Number(row.volume_usd ?? row.volume ?? 0);
+      const time = toUnixSeconds(
+        row.timestamp ?? row.time ?? row.open_time
+      );
 
-      const high = Number.isFinite(highValue)
-        ? highValue
-        : Math.max(open, close);
-
-      const low = Number.isFinite(lowValue)
-        ? lowValue
-        : Math.min(open, close);
+      const open = readNumber(row, ["open_usd", "open"]);
+      const high = readNumber(row, ["high_usd", "high"]);
+      const low = readNumber(row, ["low_usd", "low"]);
+      const close = readNumber(row, ["close_usd", "close"]);
+      const volume = readNumber(row, ["volume_usd", "volume"]) ?? 0;
 
       if (
         time === null ||
+        open === null ||
+        high === null ||
+        low === null ||
+        close === null
+      ) {
+        return null;
+      }
+
+      if (
         ![open, high, low, close, volume].every(Number.isFinite) ||
         open <= 0 ||
         high <= 0 ||
@@ -60,12 +88,13 @@ export default async function handler(req, res) {
 
     candles.sort((a, b) => a.time - b.time);
 
+    // Remove duplicate timestamps.
     const uniqueCandles = [];
+
     for (const candle of candles) {
-      if (
-        uniqueCandles.length &&
-        uniqueCandles[uniqueCandles.length - 1].time === candle.time
-      ) {
+      const last = uniqueCandles[uniqueCandles.length - 1];
+
+      if (last && last.time === candle.time) {
         uniqueCandles[uniqueCandles.length - 1] = candle;
       } else {
         uniqueCandles.push(candle);
@@ -75,7 +104,7 @@ export default async function handler(req, res) {
     if (uniqueCandles.length === 0) {
       return res.status(502).json({
         ok: false,
-        error: "No usable MOJ candle data returned"
+        error: "No usable MOJ candle data returned",
       });
     }
 
@@ -84,14 +113,14 @@ export default async function handler(req, res) {
       symbol: "MOJ/USD",
       interval: "5m",
       candles: uniqueCandles,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     });
   } catch (error) {
     console.error("MOJ chart API error:", error);
 
     return res.status(502).json({
       ok: false,
-      error: "Unable to load MOJ chart data"
+      error: error?.message || "Unable to load MOJ chart data",
     });
   }
 }
