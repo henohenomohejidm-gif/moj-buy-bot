@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -18,21 +19,15 @@
       --muted: #8b96a8;
       --green: #20d6a0;
       --red: #ff647c;
-      --yellow: #facc15;
-      --gray: #9ca3af;
-      --white: #f8fafc;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     a {
@@ -61,9 +56,7 @@
       letter-spacing: 0.5px;
     }
 
-    .brand span {
-      color: var(--green);
-    }
+    .brand span { color: var(--green); }
 
     .status {
       color: var(--muted);
@@ -114,13 +107,8 @@
       margin-top: 6px;
     }
 
-    .green {
-      color: var(--green);
-    }
-
-    .red {
-      color: var(--red);
-    }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
 
     .panel {
       background: var(--panel);
@@ -150,44 +138,18 @@
       margin-top: 4px;
     }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-
-    .range-btn,
-    .link-btn,
-    .copy-btn {
-      appearance: none;
-      border: 1px solid var(--border);
-      background: #171e2a;
-      color: var(--text);
-      padding: 9px 12px;
+    .fixed-range {
+      background: rgba(32, 214, 160, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(32, 214, 160, 0.3);
+      padding: 8px 12px;
       border-radius: 8px;
       font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
-    .range-btn:hover,
-    .link-btn:hover,
-    .copy-btn:hover {
-      border-color: #566176;
-      background: #202938;
-    }
-
-    .range-btn.active {
-      color: #07130f;
-      background: var(--green);
-      border-color: var(--green);
-    }
-
-    .chart-wrap {
-      padding: 8px 8px 0;
-    }
+    .chart-wrap { padding: 8px 8px 0; }
 
     #chart {
       height: 370px;
@@ -234,12 +196,32 @@
       margin-top: 14px;
     }
 
+    .link-btn,
+    .copy-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #171e2a;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
     .link-btn {
       display: flex;
       justify-content: center;
       align-items: center;
       text-align: center;
       min-height: 42px;
+    }
+
+    .link-btn:hover,
+    .copy-btn:hover {
+      border-color: #566176;
+      background: #202938;
     }
 
     .contract {
@@ -279,21 +261,15 @@
     }
 
     @media (max-width: 650px) {
-      .page {
-        padding: 12px;
-      }
+      .page { padding: 12px; }
 
       .metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .metric {
-        padding: 12px;
-      }
+      .metric { padding: 12px; }
 
-      #chart {
-        height: 320px;
-      }
+      #chart { height: 320px; }
 
       .links {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -304,9 +280,7 @@
         flex-direction: column;
       }
 
-      .copy-btn {
-        width: 100%;
-      }
+      .copy-btn { width: 100%; }
     }
   </style>
 </head>
@@ -353,11 +327,7 @@
           <div class="chart-title">MOJ / USD</div>
           <div class="chart-subtitle">Candles · Volume · Moving Averages</div>
         </div>
-
-        <div class="controls">
-          <button class="range-btn active" id="btn5m" type="button">5M</button>
-          <button class="range-btn" id="btn24h" type="button">24H</button>
-        </div>
+        <div class="fixed-range">24H VIEW</div>
       </div>
 
       <div class="chart-wrap">
@@ -377,6 +347,10 @@
           <span class="legend-line" style="background:#f8fafc"></span>
           MA 99
         </span>
+        <span class="legend-item">
+          <span class="legend-line" style="background:#20d6a0"></span>
+          Volume
+        </span>
       </div>
 
       <div class="error" id="chartError"></div>
@@ -384,11 +358,11 @@
 
     <nav class="links">
       <a class="link-btn" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener noreferrer">TradingView ↗</a>
-      <a class="link-btn" href="https://www.suivision.xyz/" target="_blank" rel="noopener noreferrer">SuiVision ↗</a>
-      <a class="link-btn" href="https://turbos.finance/" target="_blank" rel="noopener noreferrer">Turbos Buy MOJ ↗</a>
-      <a class="link-btn" href="https://t.me/" target="_blank" rel="noopener noreferrer">Telegram ↗</a>
-      <a class="link-btn" href="https://x.com/" target="_blank" rel="noopener noreferrer">Official X ↗</a>
-      <a class="link-btn" href="https://www.sui.io/" target="_blank" rel="noopener noreferrer">Sui ↗</a>
+      <a class="link-btn" href="https://app.turbos.finance/" target="_blank" rel="noopener noreferrer">Turbos Buy MOJ ↗</a>
+      <a class="link-btn" href="https://suivision.xyz/" target="_blank" rel="noopener noreferrer">SuiVision ↗</a>
+      <a class="link-btn" href="https://t.me/heno_henomoheji" target="_blank" rel="noopener noreferrer">Telegram ↗</a>
+      <a class="link-btn" href="https://x.com/MOHEJI_MOJ" target="_blank" rel="noopener noreferrer">Official X ↗</a>
+      <a class="link-btn" href="https://moheji-website.vercel.app/" target="_blank" rel="noopener noreferrer">Official Website ↗</a>
     </nav>
 
     <section class="contract">
@@ -408,6 +382,7 @@
     "use strict";
 
     const API_URL = "/api/chart";
+    const FIXED_RANGE = "24h";
     const TOTAL_SUPPLY = 10_000_000_000;
     const REFRESH_INTERVAL = 30_000;
 
@@ -417,12 +392,10 @@
     let ma7Series = null;
     let ma25Series = null;
     let ma99Series = null;
-
-    let currentRange = "5m";
+    let currentPriceLine = null;
     let lastCurrentPrice = null;
     let chartReady = false;
     let refreshInProgress = false;
-    let refreshTimer = null;
 
     const $ = (id) => document.getElementById(id);
 
@@ -512,12 +485,10 @@
           item.t;
 
         const time = toUnixSeconds(rawTime);
-
         const open = Number(item.open ?? item.o);
         const high = Number(item.high ?? item.h);
         const low = Number(item.low ?? item.l);
         const close = Number(item.close ?? item.c);
-
         const volume = Number(item.volume ?? item.vol ?? item.v ?? 0);
 
         if (
@@ -542,8 +513,9 @@
 
       result.sort((a, b) => a.time - b.time);
 
-      // 同じ時刻のローソク足が重複した場合は最後のデータを採用
+      // 同じ時刻のローソク足は重複させない
       const unique = [];
+
       for (const candle of result) {
         if (unique.length && unique[unique.length - 1].time === candle.time) {
           unique[unique.length - 1] = candle;
@@ -555,7 +527,7 @@
       return unique;
     }
 
-    // 単純移動平均（SMA）
+    // Simple Moving Average
     function calculateSMA(candles, period) {
       if (!Array.isArray(candles) || candles.length < period) {
         return [];
@@ -587,13 +559,13 @@
 
       const value = Number(price);
 
-      if (window.__mojPriceLine) {
+      if (currentPriceLine) {
         try {
-          candleSeries.removePriceLine(window.__mojPriceLine);
+          candleSeries.removePriceLine(currentPriceLine);
         } catch (_) {}
       }
 
-      window.__mojPriceLine = candleSeries.createPriceLine({
+      currentPriceLine = candleSeries.createPriceLine({
         price: value,
         color: "#20d6a0",
         lineWidth: 1,
@@ -643,7 +615,7 @@
         }))
       );
 
-      // MAはローソク足と同じメインチャートに重ねて表示
+      // 3本のMAをローソク足に重ねる
       ma7Series.setData(calculateSMA(candles, 7));
       ma25Series.setData(calculateSMA(candles, 25));
       ma99Series.setData(calculateSMA(candles, 99));
@@ -652,33 +624,11 @@
         updatePriceLine(lastCurrentPrice);
       }
 
+      // 初回のみ全データが見える範囲に合わせる
       if (!chartReady) {
         chart.timeScale().fitContent();
         chartReady = true;
       }
-    }
-
-    function setChartRange(range) {
-      currentRange = range;
-      chartReady = false;
-
-      $("btn5m").classList.toggle("active", range === "5m");
-      $("btn24h").classList.toggle("active", range === "24h");
-
-      if (candleSeries) candleSeries.setData([]);
-      if (volumeSeries) volumeSeries.setData([]);
-      if (ma7Series) ma7Series.setData([]);
-      if (ma25Series) ma25Series.setData([]);
-      if (ma99Series) ma99Series.setData([]);
-
-      if (window.__mojPriceLine && candleSeries) {
-        try {
-          candleSeries.removePriceLine(window.__mojPriceLine);
-        } catch (_) {}
-        window.__mojPriceLine = null;
-      }
-
-      fetchChartData();
     }
 
     function initializeChart() {
@@ -750,6 +700,7 @@
         }
       });
 
+      // ローソク足：上昇は中抜き、下落は塗りつぶし
       candleSeries = chart.addCandlestickSeries({
         upColor: "#111620",
         downColor: "#f8fafc",
@@ -791,7 +742,7 @@
         crosshairMarkerVisible: false
       });
 
-      // 出来高をチャート下部に表示する専用スケール
+      // 出来高：チャート下部の専用スケール
       volumeSeries = chart.addHistogramSeries({
         priceFormat: { type: "volume" },
         priceScaleId: "volume",
@@ -808,13 +759,10 @@
         borderVisible: false
       });
 
-      chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-        if (!range) return;
-      });
-
       if ("ResizeObserver" in window) {
         const resizeObserver = new ResizeObserver(() => {
           if (!chart) return;
+
           chart.applyOptions({
             width: container.clientWidth,
             height: container.clientHeight
@@ -825,6 +773,7 @@
       } else {
         window.addEventListener("resize", () => {
           if (!chart) return;
+
           chart.applyOptions({
             width: container.clientWidth,
             height: container.clientHeight
@@ -835,11 +784,15 @@
 
     async function fetchChartData() {
       if (refreshInProgress) return;
+
       refreshInProgress = true;
 
       try {
         const url = new URL(API_URL, window.location.origin);
-        url.searchParams.set("range", currentRange);
+
+        // 常に24H固定。切り替え操作は存在しない
+        url.searchParams.set("range", FIXED_RANGE);
+        url.searchParams.set("_", String(Date.now()));
 
         const response = await fetch(url.toString(), {
           method: "GET",
@@ -863,6 +816,7 @@
 
         if (Number.isFinite(price)) {
           lastCurrentPrice = price;
+
           setText("price", formatUSD(price));
           setText("fdv", formatCompactUSD(price * TOTAL_SUPPLY));
         }
@@ -873,6 +827,7 @@
 
         if (Number.isFinite(change24h)) {
           const changeElement = $("change24h");
+
           changeElement.textContent = formatPercent(change24h);
           changeElement.classList.toggle("green", change24h >= 0);
           changeElement.classList.toggle("red", change24h < 0);
@@ -886,8 +841,10 @@
 
         updateChart(candles);
 
-        setText("connectionStatus", "Live · Updated " +
-          new Date().toLocaleTimeString("ja-JP"));
+        setText(
+          "connectionStatus",
+          "Live · Updated " + new Date().toLocaleTimeString("ja-JP")
+        );
       } catch (error) {
         console.error("[MOJ Terminal]", error);
         setText("connectionStatus", "Connection error");
@@ -900,14 +857,6 @@
         refreshInProgress = false;
       }
     }
-
-    $("btn5m").addEventListener("click", () => {
-      if (currentRange !== "5m") setChartRange("5m");
-    });
-
-    $("btn24h").addEventListener("click", () => {
-      if (currentRange !== "24h") setChartRange("24h");
-    });
 
     $("copyCA").addEventListener("click", async () => {
       const address = $("contractAddress").textContent.trim();
@@ -926,7 +875,7 @@
     try {
       initializeChart();
       fetchChartData();
-      refreshTimer = setInterval(fetchChartData, REFRESH_INTERVAL);
+      setInterval(fetchChartData, REFRESH_INTERVAL);
     } catch (error) {
       console.error("Chart initialization failed:", error);
       setText("connectionStatus", "Chart error");
