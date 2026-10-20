@@ -81,7 +81,7 @@ export default async function handler(req, res) {
         inline_keyboard: [
           [
             {
-              text: "🚀 Open MOJ Website",
+              text: "🚀 Open MOJ Terminal",
               url: MINI_APP_URL,
             },
           ],
