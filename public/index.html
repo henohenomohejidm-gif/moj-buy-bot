@@ -184,6 +184,13 @@
       background:var(--green);
     }
 
+
+    .timeframe-controls { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding:12px 18px; border-bottom:1px solid var(--border); background:#07090c; }
+    .timeframe-btn { appearance:none; border:1px solid #29313a; border-radius:7px; background:#0b0e12; color:#aeb8c2; padding:8px 13px; font:800 10px/1 inherit; letter-spacing:.06em; cursor:pointer; transition:background .15s,border-color .15s,color .15s; }
+    .timeframe-btn:hover { border-color:#36785c; color:#e9fff3; }
+    .timeframe-btn[aria-pressed="true"] { color:#9af0c3; border-color:#28754f; background:rgba(54,230,160,.11); box-shadow:inset 0 0 0 1px rgba(54,230,160,.08); }
+    @media(max-width:520px){ .timeframe-controls{gap:6px;padding:10px 12px}.timeframe-btn{padding:8px 10px;flex:1;min-width:48px} }
+
     .ma-controls {
       display:flex;
       align-items:center;
@@ -406,9 +413,17 @@
         <div class="panel-head">
           <div>
             <div class="panel-title">MOJ PRICE CHART</div>
-            <div class="panel-subtitle">5-minute candlesticks · USD</div>
+            <div class="panel-subtitle" id="chart-subtitle">5-minute candlesticks · USD</div>
           </div>
-          <div class="chart-badge"><span class="chart-badge-dot"></span>5M FIXED</div>
+          <div class="chart-badge"><span class="chart-badge-dot"></span><span id="range-badge">24H VIEW · 5M</span></div>
+        </div>
+
+        <div class="timeframe-controls" role="group" aria-label="Chart timeframe">
+          <button class="timeframe-btn" type="button" data-interval="1m" aria-pressed="false">1M</button>
+          <button class="timeframe-btn" type="button" data-interval="5m" aria-pressed="true">5M</button>
+          <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
+          <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
+          <button class="timeframe-btn" type="button" data-interval="4h" aria-pressed="false">4H</button>
         </div>
 
         <div class="ma-controls" aria-label="Moving average visibility">
@@ -489,7 +504,14 @@
 
   const TOTAL_SUPPLY = 10_000_000_000;
   const REFRESH_MS = 30_000;
-  const CANDLE_SECONDS = 300;
+  const TIMEFRAMES = {
+    "1m": { label: "1-minute", seconds: 60, visibleSeconds: 24 * 3600, range: "24H VIEW" },
+    "5m": { label: "5-minute", seconds: 300, visibleSeconds: 24 * 3600, range: "24H VIEW" },
+    "15m": { label: "15-minute", seconds: 900, visibleSeconds: 24 * 3600, range: "24H VIEW" },
+    "1h": { label: "1-hour", seconds: 3600, visibleSeconds: 7 * 24 * 3600, range: "7D VIEW" },
+    "4h": { label: "4-hour", seconds: 14400, visibleSeconds: 30 * 24 * 3600, range: "30D VIEW" }
+  };
+  let selectedInterval = "5m";
   const API_URL = "/api/chart";
 
   const $ = (id) => document.getElementById(id);
@@ -507,6 +529,7 @@
   let requestController;
   let requestInProgress = false;
   let firstLoad = true;
+  let shouldFrameRange = true;
   let lastCandles = [];
   let lastPayload = null;
   let lastSuccessfulUpdate = null;
@@ -1087,7 +1110,7 @@
 
   function renderCandles(candles, payload) {
     if (!candles.length) {
-      throw new Error("No valid 5-minute candles returned");
+      throw new Error("No valid " + TIMEFRAMES[selectedInterval].label + " candles returned");
     }
 
     candleSeries.setData(candles.map((c) => ({
@@ -1117,7 +1140,7 @@
     if (!currentPriceLine) {
       currentPriceLine = candleSeries.createPriceLine({
         price: last.close,
-        color: "#68a7ff",
+        color: "#36e6a0",
         lineWidth: 1,
         lineStyle: LightweightCharts.LineStyle.Dotted,
         axisLabelVisible: true,
@@ -1131,16 +1154,24 @@
       chart.timeScale().fitContent();
       firstLoad = false;
     }
+    const frame = TIMEFRAMES[selectedInterval];
+    const lastTime = candles[candles.length - 1].time;
+    if (shouldFrameRange) {
+      chart.timeScale().setVisibleRange({ from: Math.max(candles[0].time, lastTime - frame.visibleSeconds), to: lastTime + frame.seconds });
+      shouldFrameRange = false;
+    }
 
     const gaps = candles.reduce((count, candle, index) => {
       if (index === 0) return count;
 
       return count +
-        (candle.time - candles[index - 1].time > CANDLE_SECONDS ? 1 : 0);
+        (candle.time - candles[index - 1].time > TIMEFRAMES[selectedInterval].seconds ? 1 : 0);
     }, 0);
 
+    $("chart-subtitle").textContent = frame.label + " candlesticks · USD";
+    $("range-badge").textContent = frame.range + " · " + selectedInterval.toUpperCase();
     setStatus(
-      "5-minute candles · " + candles.length + " bars" +
+      frame.label + " candles · " + candles.length + " bars" +
       (gaps ? " · " + gaps + " interval gap(s)" : ""),
       true
     );
@@ -1158,8 +1189,8 @@
     requestController = new AbortController();
 
     const url = new URL(API_URL, window.location.origin);
-    url.searchParams.set("range", "5m");
-    url.searchParams.set("interval", "5m");
+    url.searchParams.set("range", selectedInterval);
+    url.searchParams.set("interval", selectedInterval);
     url.searchParams.set("coinType", CONTRACT_ADDRESS);
 
     try {
@@ -1186,14 +1217,8 @@
 
       const payload = await response.json();
 
-      if (
-        payload?.interval &&
-        payload.interval !== "5m" &&
-        payload.interval !== "5minute"
-      ) {
-        throw new Error(
-          "Expected 5-minute data, received " + payload.interval
-        );
+      if (payload?.interval && payload.interval !== selectedInterval) {
+        throw new Error("Expected " + selectedInterval + " data, received " + payload.interval);
       }
 
       const candles = normalizeCandles(payload);
@@ -1227,6 +1252,23 @@
       requestInProgress = false;
     }
   }
+
+  document.querySelectorAll(".timeframe-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const next = button.dataset.interval;
+      if (!TIMEFRAMES[next] || next === selectedInterval) return;
+      selectedInterval = next;
+      document.querySelectorAll(".timeframe-btn").forEach((item) => {
+        item.setAttribute("aria-pressed", String(item.dataset.interval === selectedInterval));
+      });
+      firstLoad = true;
+      shouldFrameRange = true;
+      if (requestController) requestController.abort();
+      requestInProgress = false;
+      setStatus("Loading " + TIMEFRAMES[selectedInterval].label + " candles…", true);
+      fetchChartData();
+    });
+  });
 
   $("copy-btn").addEventListener("click", async () => {
     const button = $("copy-btn");
