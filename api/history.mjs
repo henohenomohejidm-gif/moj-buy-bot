@@ -1,6 +1,7 @@
 
 import { getConfig } from "../lib/config.mjs";
-
+const CREATOR_WALLET =
+  "0x49b10a9c517c635729cb3f17275c404b28985fd186b19cecb7fab2de80e31570".toLowerCase();
 const MOJ_DECIMALS = 6;
 const SUI_DECIMALS = 9;
 const DEFAULT_LIMIT = 30;
@@ -127,6 +128,7 @@ function buildHistoryItem(transaction, config) {
   return {
     digest: transaction.digest,
     sender,
+    isCreator: senderLower === CREATOR_WALLET,
     side,
     mojAmount: formatUnits(
       mojDelta < 0n ? -mojDelta : mojDelta,
