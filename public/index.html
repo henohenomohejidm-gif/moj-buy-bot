@@ -294,6 +294,22 @@
     .action-link.primary { border-color:#276b54; background:rgba(31,121,87,.17); color:#8af0c2; }
     .copy-btn { width:100%; }
 
+
+    .history-panel { margin-top:16px; }
+    .history-summary { color:var(--muted); font-size:10px; white-space:nowrap; }
+    .history-table-wrap { width:100%; overflow-x:auto; }
+    .history-table { width:100%; border-collapse:collapse; min-width:680px; font-size:11px; }
+    .history-table th { padding:11px 13px; text-align:left; color:var(--muted); font-size:9px; letter-spacing:.08em; font-weight:800; background:#080d14; }
+    .history-table td { padding:12px 13px; border-top:1px solid rgba(32,43,58,.7); white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .history-table tbody tr:hover { background:rgba(255,255,255,.025); }
+    .history-side { font-weight:900; }
+    .history-side.buy { color:var(--green); }
+    .history-side.sell { color:var(--red); }
+    .history-wallet { color:#a7b8ce; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    .history-tx { color:#8af0c2; font-weight:800; }
+    .history-message { color:var(--muted); text-align:center; white-space:normal!important; padding:24px 14px!important; }
+    .history-note { padding:12px 15px; border-top:1px solid var(--border); color:var(--muted); font-size:10px; line-height:1.6; }
+
     .contract-panel { margin-top:16px; padding:18px; }
 
     .contract-head {
@@ -414,11 +430,12 @@
           <div>
             <div class="panel-title">MOJ PRICE CHART</div>
             <div class="panel-subtitle" id="chart-subtitle">5-minute candlesticks · USD</div>
-        　</div>
+          </div>
           <div class="chart-badge"><span class="chart-badge-dot"></span><span id="range-badge">24H VIEW · 5M</span></div>
         </div>
 
         <div class="timeframe-controls" role="group" aria-label="Chart timeframe">
+          <button class="timeframe-btn" type="button" data-interval="1m" aria-pressed="false">1M</button>
           <button class="timeframe-btn" type="button" data-interval="5m" aria-pressed="true">5M</button>
           <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
           <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
@@ -455,6 +472,23 @@
           </div>
           <span id="last-updated">Last updated: —</span>
         </div>
+      </section>
+
+      <section class="panel history-panel" aria-label="MOJ trade history">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">MOJ TRADE HISTORY</div>
+            <div class="panel-subtitle">Recent transactions · Sui Mainnet</div>
+          </div>
+          <div class="history-summary" id="history-updated">Loading…</div>
+        </div>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead><tr><th>TYPE</th><th>TIME (JST)</th><th>MOJ AMOUNT</th><th>SUI AMOUNT</th><th>WALLET</th><th>TX</th></tr></thead>
+            <tbody id="history-body"><tr><td colspan="6" class="history-message">Loading MOJ transaction history…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="history-note">BUY / SELL labels are inferred from wallet balance changes and may not represent confirmed Turbos swaps. Verify each transaction using its explorer link.</div>
       </section>
 
       <section class="panel links-panel">
@@ -504,6 +538,7 @@
   const TOTAL_SUPPLY = 10_000_000_000;
   const REFRESH_MS = 30_000;
   const TIMEFRAMES = {
+    "1m": { label: "1-minute", seconds: 60, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "5m": { label: "5-minute", seconds: 300, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "15m": { label: "15-minute", seconds: 900, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "1h": { label: "1-hour", seconds: 3600, visibleSeconds: 7 * 24 * 3600, range: "7D VIEW" },
@@ -1251,6 +1286,105 @@
     }
   }
 
+
+  let historyRequestInProgress = false;
+
+  function shortenAddress(address) {
+    if (typeof address !== "string" || !/^0x[a-fA-F0-9]{20,}$/.test(address)) return "—";
+    return address.slice(0, 6) + "…" + address.slice(-4);
+  }
+
+  function formatHistoryTime(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hour12: false
+    }).format(date);
+  }
+
+  function addHistoryCell(row, value, className) {
+    const cell = document.createElement("td");
+    cell.textContent = value;
+    if (className) cell.className = className;
+    row.appendChild(cell);
+    return cell;
+  }
+
+  function showHistoryMessage(message) {
+    const body = $("history-body");
+    body.replaceChildren();
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 6;
+    cell.className = "history-message";
+    cell.textContent = message;
+    row.appendChild(cell);
+    body.appendChild(row);
+  }
+
+  function renderHistory(items) {
+    const body = $("history-body");
+    body.replaceChildren();
+    if (!items.length) {
+      showHistoryMessage("No transaction history available.");
+      return;
+    }
+
+    for (const item of items) {
+      const side = String(item?.side || "").toUpperCase();
+      if (side !== "BUY" && side !== "SELL") continue;
+      if (typeof item.digest !== "string" || !/^[a-zA-Z0-9_-]+$/.test(item.digest)) continue;
+      const row = document.createElement("tr");
+      addHistoryCell(row, side, "history-side " + side.toLowerCase());
+      addHistoryCell(row, formatHistoryTime(item.timestamp));
+
+      const moj = Number(item.mojAmount);
+      addHistoryCell(row, Number.isFinite(moj) ? moj.toLocaleString("en-US", { maximumFractionDigits: 4 }) : "—");
+      const sui = Number(item.suiAmount);
+      addHistoryCell(row, Number.isFinite(sui) ? sui.toLocaleString("en-US", { maximumFractionDigits: 6 }) : "—");
+
+      const wallet = addHistoryCell(row, shortenAddress(item.sender), "history-wallet");
+      if (typeof item.sender === "string" && /^0x[a-fA-F0-9]{20,}$/.test(item.sender)) wallet.title = item.sender;
+
+      const txCell = document.createElement("td");
+      const link = document.createElement("a");
+      link.className = "history-tx";
+      link.href = "https://suivision.xyz/txblock/" + encodeURIComponent(item.digest);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "View ↗";
+      txCell.appendChild(link);
+      row.appendChild(txCell);
+      body.appendChild(row);
+    }
+
+    if (!body.children.length) showHistoryMessage("No valid transactions to display.");
+  }
+
+  async function fetchHistoryData() {
+    if (historyRequestInProgress || document.hidden) return;
+    historyRequestInProgress = true;
+    try {
+      const response = await fetch("/api/history?limit=30", {
+        method: "GET", cache: "no-store", headers: { Accept: "application/json" }
+      });
+      if (!response.ok) throw new Error("History API HTTP " + response.status);
+      const payload = await response.json();
+      if (payload?.ok !== true || !Array.isArray(payload.history)) {
+        throw new Error("Invalid history API response");
+      }
+      renderHistory(payload.history);
+      $("history-updated").textContent = "Updated " + new Date().toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit", hour12: false });
+    } catch (error) {
+      console.error("[MOJ Terminal] History update failed:", error);
+      $("history-updated").textContent = "Update failed";
+      if (!$("history-body").children.length) showHistoryMessage("Unable to load transaction history.");
+    } finally {
+      historyRequestInProgress = false;
+    }
+  }
+
   document.querySelectorAll(".timeframe-btn").forEach((button) => {
     button.addEventListener("click", () => {
       const next = button.dataset.interval;
@@ -1306,14 +1440,21 @@
     if (!createChart()) return;
 
     fetchChartData();
+    fetchHistoryData();
 
     if (refreshTimer) clearInterval(refreshTimer);
 
-    refreshTimer = setInterval(fetchChartData, REFRESH_MS);
+    refreshTimer = setInterval(() => {
+      fetchChartData();
+      fetchHistoryData();
+    }, REFRESH_MS);
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) fetchChartData();
+    if (!document.hidden) {
+      fetchChartData();
+      fetchHistoryData();
+    }
   });
 
   window.addEventListener("beforeunload", () => {
