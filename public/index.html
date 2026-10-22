@@ -435,7 +435,6 @@
         </div>
 
         <div class="timeframe-controls" role="group" aria-label="Chart timeframe">
-          <button class="timeframe-btn" type="button" data-interval="1m" aria-pressed="false">1M</button>
           <button class="timeframe-btn" type="button" data-interval="5m" aria-pressed="true">5M</button>
           <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
           <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
@@ -538,7 +537,6 @@
   const TOTAL_SUPPLY = 10_000_000_000;
   const REFRESH_MS = 30_000;
   const TIMEFRAMES = {
-    "1m": { label: "1-minute", seconds: 60, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "5m": { label: "5-minute", seconds: 300, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "15m": { label: "15-minute", seconds: 900, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "1h": { label: "1-hour", seconds: 3600, visibleSeconds: 7 * 24 * 3600, range: "7D VIEW" },
