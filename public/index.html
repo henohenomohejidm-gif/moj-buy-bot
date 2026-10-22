@@ -392,7 +392,18 @@
       .ma-toggle { font-size:10px; }
       #chart { height:310px; }
     }
-  </style>
+  
+    /* Home mini line chart uses actual close prices from the existing chart API. */
+    .home-trend { margin-top:22px; padding:18px 18px 14px; border:1px solid #263244; border-radius:14px; background:linear-gradient(145deg, rgba(15,24,32,.92), rgba(9,14,20,.96)); }
+    .home-trend-head,.home-trend-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .home-trend-period { color:#35e6a0; border:1px solid rgba(53,230,160,.25); background:rgba(53,230,160,.06); border-radius:999px; padding:6px 10px; font-size:10px; letter-spacing:.08em; }
+    .home-trend-chart { height:150px; margin-top:12px; overflow:hidden; }
+    #home-line-chart { display:block; width:100%; height:100%; overflow:visible; }
+    .home-trend-foot { margin-top:9px; color:#718096; font-size:10px; letter-spacing:.08em; }
+    .home-chart-link { border:0; background:none; color:#35e6a0; font:inherit; font-weight:700; letter-spacing:.04em; cursor:pointer; padding:4px 0; }
+    @media(max-width:700px) { .home-trend { margin-top:16px; padding:14px 12px 12px; } .home-trend-chart { height:120px; } }
+
+</style>
 </head>
 <body>
   <div class="app">
@@ -443,6 +454,15 @@
           <div class="metric-value" id="low">$—</div>
           <div class="metric-foot">Latest 24-hour window</div>
         </article>
+      </section>
+
+      <section class="home-trend" aria-label="MOJ 24 hour price trend">
+        <div class="home-trend-head">
+          <div><div class="panel-title">MOJ PRICE MOVEMENT</div><div class="panel-subtitle">Recent price history · USD</div></div>
+          <div class="home-trend-period">24H VIEW</div>
+        </div>
+        <div class="home-trend-chart"><svg id="home-line-chart" viewBox="0 0 1000 180" preserveAspectRatio="none" role="img" aria-label="MOJ price history line chart"><text x="500" y="90" text-anchor="middle" fill="#718096" font-size="15">Waiting for market data…</text></svg></div>
+        <div class="home-trend-foot"><span>HISTORICAL PRICE</span><button type="button" class="home-chart-link" data-screen="chart">OPEN FULL CHART ↗</button></div>
       </section>
       </section><!-- /screen-home -->
 
@@ -1208,6 +1228,23 @@
     candleSeries.setMarkers(markers);
   }
 
+  function renderHomeLine(candles) {
+    const svg = $("home-line-chart");
+    if (!svg || !Array.isArray(candles) || candles.length < 2) return;
+    // Plot actual closes; do not fabricate prices for missing candles.
+    const points = candles.slice(-48).filter((c) => Number.isFinite(c.close) && c.close > 0);
+    if (points.length < 2) return;
+    const values = points.map((c) => c.close);
+    let min = Math.min(...values), max = Math.max(...values);
+    if (max === min) { const pad = Math.abs(max) * 0.002 || 1e-12; min -= pad; max += pad; }
+    const left = 4, right = 996, top = 12, bottom = 166;
+    const coords = values.map((v, i) => ({ x:left+(right-left)*i/(values.length-1), y:bottom-((v-min)/(max-min))*(bottom-top) }));
+    const line = coords.map((pt) => `${pt.x.toFixed(2)},${pt.y.toFixed(2)}`).join(" ");
+    const area = `${left},${bottom} ${line} ${right},${bottom}`;
+    const last = coords[coords.length-1];
+    svg.innerHTML = `<defs><linearGradient id="homeLineFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#35e6a0" stop-opacity=".22"></stop><stop offset="100%" stop-color="#35e6a0" stop-opacity="0"></stop></linearGradient></defs>${[35,75,115,155].map(y=>`<line x1="0" y1="${y}" x2="1000" y2="${y}" stroke="#263244" stroke-width="1" stroke-dasharray="3 7"></line>`).join("")}<polygon points="${area}" fill="url(#homeLineFill)"></polygon><polyline points="${line}" fill="none" stroke="#35e6a0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline><circle cx="${last.x}" cy="${last.y}" r="4" fill="#35e6a0"></circle><circle cx="${last.x}" cy="${last.y}" r="9" fill="#35e6a0" opacity=".14"></circle>`;
+  }
+
   function renderCandles(candles, payload) {
     if (!candles.length) {
       throw new Error("No valid " + TIMEFRAMES[selectedInterval].label + " candles returned");
@@ -1221,6 +1258,7 @@
       close: c.close
     })));
     updateCreatorMarkers(candles);
+    renderHomeLine(candles);
 
     ma7Series.setData(sma(candles, 7));
     ma25Series.setData(sma(candles, 25));
