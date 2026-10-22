@@ -1201,7 +1201,7 @@
         position: side === "BUY" ? "belowBar" : "aboveBar",
         color: side === "BUY" ? "#36e6a0" : "#ff657a",
         shape: side === "BUY" ? "arrowUp" : "arrowDown",
-        text: side === "BUY" ? "♛ CREATOR BUY" : "♛ CREATOR SELL"
+        text: side === "BUY" ? "♛CB" : "♛CS"
       });
     }
     markers.sort((a, b) => a.time - b.time);
@@ -1404,7 +1404,15 @@
       if (side !== "BUY" && side !== "SELL") continue;
       if (typeof item.digest !== "string" || !/^[a-zA-Z0-9_-]+$/.test(item.digest)) continue;
       const row = document.createElement("tr");
-      addHistoryCell(row, side, "history-side " + side.toLowerCase());
+      const isCreator =
+        item.isCreator === true ||
+        String(item.sender || "").toLowerCase() === CREATOR_WALLET;
+      const historyLabel = isCreator ? (side === "BUY" ? "♛CB" : "♛CS") : side;
+      addHistoryCell(
+        row,
+        historyLabel,
+        "history-side " + side.toLowerCase() + (isCreator ? " creator" : "")
+      );
       addHistoryCell(row, formatHistoryTime(item.timestamp));
 
       const moj = Number(item.mojAmount);
