@@ -343,6 +343,25 @@
 
     .footer-brand { color:#a1aec0; font-weight:800; letter-spacing:.08em; }
 
+
+    /* Bottom navigation: keeps the existing terminal sections and controls intact. */
+    .app-screen { display:none; min-width:0; }
+    .app-screen.is-active { display:block; }
+    .bottom-nav {
+      position:fixed; z-index:1000; left:50%; bottom:0; transform:translateX(-50%);
+      width:min(1180px,100%); display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+      padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+      border-top:1px solid #263244; background:rgba(7,11,17,.96);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    }
+    .bottom-nav-btn { appearance:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+      min-height:48px; border:0; border-radius:10px; background:transparent; color:#8190a4;
+      font-size:10px; font-weight:800; letter-spacing:.03em; cursor:pointer; }
+    .bottom-nav-btn .nav-icon { font-size:19px; line-height:1; }
+    .bottom-nav-btn.is-active { color:var(--green); background:rgba(54,230,160,.08); }
+    .app { padding-bottom:calc(100px + env(safe-area-inset-bottom)); }
+    @media(min-width:701px) { .bottom-nav { border-left:1px solid #263244; border-right:1px solid #263244; border-radius:14px 14px 0 0; } }
+
     @media(max-width:700px) {
       .app { padding:14px 13px 26px; }
       .topbar { padding-bottom:16px; }
@@ -389,6 +408,7 @@
     </header>
 
     <main>
+      <section class="app-screen" id="screen-home" aria-label="Home">
       <section class="hero">
         <div>
           <div class="eyebrow">MOJ / SUI</div>
@@ -424,7 +444,9 @@
           <div class="metric-foot">Latest 24-hour window</div>
         </article>
       </section>
+      </section><!-- /screen-home -->
 
+      <section class="app-screen" id="screen-chart" aria-label="Chart">
       <section class="panel" aria-label="MOJ price chart">
         <div class="panel-head">
           <div>
@@ -472,7 +494,9 @@
           <span id="last-updated">Last updated: —</span>
         </div>
       </section>
+      </section><!-- /screen-chart -->
 
+      <section class="app-screen" id="screen-history" aria-label="History">
       <section class="panel history-panel" aria-label="MOJ trade history">
         <div class="panel-head">
           <div>
@@ -489,7 +513,9 @@
         </div>
         <div class="history-note">BUY / SELL labels are inferred from wallet balance changes and may not represent confirmed Turbos swaps. Verify each transaction using its explorer link.</div>
       </section>
+      </section><!-- /screen-history -->
 
+      <section class="app-screen" id="screen-more" aria-label="More">
       <section class="panel links-panel">
         <div class="panel-head">
           <div>
@@ -519,7 +545,15 @@
           <button class="copy-btn" id="copy-btn" type="button">COPY CA</button>
         </div>
       </section>
+      </section><!-- /screen-more -->
     </main>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="bottom-nav-btn is-active" type="button" data-screen="home" aria-current="page"><span class="nav-icon">⌂</span><span>Home</span></button>
+      <button class="bottom-nav-btn" type="button" data-screen="chart"><span class="nav-icon">▥</span><span>Chart</span></button>
+      <button class="bottom-nav-btn" type="button" data-screen="history"><span class="nav-icon">↻</span><span>History</span></button>
+      <button class="bottom-nav-btn" type="button" data-screen="more"><span class="nav-icon">•••</span><span>More</span></button>
+    </nav>
 
     <footer class="footer">
       <span class="footer-brand">HENOHENOMOHEJI (MOJ)</span>
@@ -537,6 +571,7 @@
   const TOTAL_SUPPLY = 10_000_000_000;
   const REFRESH_MS = 30_000;
   const TIMEFRAMES = {
+    "1m": { label: "1-minute", seconds: 60, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "5m": { label: "5-minute", seconds: 300, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "15m": { label: "15-minute", seconds: 900, visibleSeconds: 24 * 3600, range: "24H VIEW" },
     "1h": { label: "1-hour", seconds: 3600, visibleSeconds: 7 * 24 * 3600, range: "7D VIEW" },
@@ -1139,52 +1174,6 @@
     chartEl.addEventListener("lostpointercapture", reset);
   }
 
-  
-  function updateCreatorMarkers(candles) {
-    if (!candleSeries || !Array.isArray(candles) || !candles.length) {
-      return;
-    }
-
-    const creatorWallet =
-      "0x49b10a9c517c635729cb3f17275c404b28985fd186b19cecb7fab2de80e31570";
-
-    const markers = [];
-    const candleTimes = candles.map((c) => c.time);
-
-    for (const item of (window.mojCreatorHistory || [])) {
-      const sender = String(item.sender || "").toLowerCase();
-      const side = String(item.side || "").toUpperCase();
-
-      if (sender !== creatorWallet || !["BUY", "SELL"].includes(side)) {
-        continue;
-      }
-
-      const timestamp = Date.parse(item.timestamp);
-      if (!Number.isFinite(timestamp)) continue;
-
-      const targetTime = Math.floor(timestamp / 1000);
-      let matchedTime = null;
-
-      for (const time of candleTimes) {
-        if (time <= targetTime && (matchedTime === null || time > matchedTime)) {
-          matchedTime = time;
-        }
-      }
-
-      if (matchedTime === null) continue;
-
-      markers.push({
-        time: matchedTime,
-        position: side === "BUY" ? "belowBar" : "aboveBar",
-        color: side === "BUY" ? "#36e6a0" : "#ff657a",
-        shape: side === "BUY" ? "arrowUp" : "arrowDown",
-        text: side === "BUY" ? "♛ CREATOR BUY" : "♛ CREATOR SELL"
-      });
-    }
-
-    candleSeries.setMarkers(markers);
-  }
-
   function renderCandles(candles, payload) {
     if (!candles.length) {
       throw new Error("No valid " + TIMEFRAMES[selectedInterval].label + " candles returned");
@@ -1197,7 +1186,7 @@
       low: c.low,
       close: c.close
     })));
-    updateCreatorMarkers(candles);
+
     ma7Series.setData(sma(candles, 7));
     ma25Series.setData(sma(candles, 25));
     ma99Series.setData(sma(candles, 99));
@@ -1379,20 +1368,8 @@
       const side = String(item?.side || "").toUpperCase();
       if (side !== "BUY" && side !== "SELL") continue;
       if (typeof item.digest !== "string" || !/^[a-zA-Z0-9_-]+$/.test(item.digest)) continue;
-      
-const row = document.createElement("tr");
-const isCreator =
-  item.isCreator === true ||
-  String(item.sender || "").toLowerCase() ===
-    "0x49b10a9c517c635729cb3f17275c404b28985fd186b19cecb7fab2de80e31570";
-const sideLabel = isCreator ? "♛ CREATOR " + side : side;
-addHistoryCell(
-  row,
-  sideLabel,
-  "history-side " + side.toLowerCase() +
-    (isCreator ? " creator" : "")
-);
-
+      const row = document.createElement("tr");
+      addHistoryCell(row, side, "history-side " + side.toLowerCase());
       addHistoryCell(row, formatHistoryTime(item.timestamp));
 
       const moj = Number(item.mojAmount);
@@ -1430,15 +1407,7 @@ addHistoryCell(
       if (payload?.ok !== true || !Array.isArray(payload.history)) {
         throw new Error("Invalid history API response");
       }
-     window.mojCreatorHistory = payload.history.filter(
-  (item) => item && item.isCreator === true
-);
-window.mojCreatorHistory = payload.history.filter(
-  (item) => item && item.isCreator === true
-);
-renderHistory(payload.history);
-updateCreatorMarkers(lastCandles);
-updateCreatorMarkers(lastCandles);
+      renderHistory(payload.history);
       $("history-updated").textContent = "Updated " + new Date().toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit", hour12: false });
     } catch (error) {
       console.error("[MOJ Terminal] History update failed:", error);
@@ -1448,6 +1417,42 @@ updateCreatorMarkers(lastCandles);
       historyRequestInProgress = false;
     }
   }
+
+
+  // Bottom navigation changes screens without removing existing chart/history elements.
+  const screenButtons = document.querySelectorAll(".bottom-nav-btn");
+  const screens = {
+    home: $("screen-home"),
+    chart: $("screen-chart"),
+    history: $("screen-history"),
+    more: $("screen-more")
+  };
+
+  function showScreen(name) {
+    if (!screens[name]) return;
+    Object.entries(screens).forEach(([key, element]) => {
+      element.classList.toggle("is-active", key === name);
+      element.hidden = key !== name;
+    });
+    screenButtons.forEach((button) => {
+      const active = button.dataset.screen === name;
+      button.classList.toggle("is-active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+    if (name === "chart" && chart && chartEl.clientWidth) {
+      requestAnimationFrame(() => {
+        chart.applyOptions({ width: chartEl.clientWidth, height: chartEl.clientHeight || 390 });
+        if (lastCandles.length && firstLoad) chart.timeScale().fitContent();
+      });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  screenButtons.forEach((button) => {
+    button.addEventListener("click", () => showScreen(button.dataset.screen));
+  });
+  showScreen("home");
 
   document.querySelectorAll(".timeframe-btn").forEach((button) => {
     button.addEventListener("click", () => {
