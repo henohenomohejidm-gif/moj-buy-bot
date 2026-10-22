@@ -403,6 +403,26 @@
     .home-chart-link { border:0; background:none; color:#35e6a0; font:inherit; font-weight:700; letter-spacing:.04em; cursor:pointer; padding:4px 0; }
     @media(max-width:700px) { .home-trend { margin-top:16px; padding:14px 12px 12px; } .home-trend-chart { height:120px; } }
 
+    /* MORE additions: reuse the existing terminal palette and card language. */
+    .more-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
+    .more-card { min-width:0; overflow:hidden; border:1px solid var(--border); border-radius:14px; background:linear-gradient(145deg,#111925,#0b1018); }
+    .more-card-head { padding:16px 17px 13px; border-bottom:1px solid var(--border); }
+    .more-card-body { padding:15px 17px 17px; }
+    .more-kicker { color:var(--green); font-size:9px; font-weight:850; letter-spacing:.14em; }
+    .more-card-title { margin-top:5px; font-size:12px; font-weight:850; letter-spacing:.035em; }
+    .more-stat-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:9px 0; border-bottom:1px solid rgba(32,43,58,.72); }
+    .more-stat-row:last-child { border-bottom:0; padding-bottom:0; }
+    .more-stat-label { color:var(--muted); font-size:10px; }
+    .more-stat-value { color:var(--text); font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; overflow-wrap:anywhere; }
+    .more-status-line { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:11px; line-height:1.5; }
+    .more-status-dot { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#8290a4; box-shadow:0 0 0 3px rgba(130,144,164,.1); }
+    .more-status-dot.is-ok { background:var(--green); box-shadow:0 0 0 3px rgba(54,230,160,.1); }
+    .more-status-dot.is-error { background:var(--red); box-shadow:0 0 0 3px rgba(255,101,122,.1); }
+    .more-guide-copy { color:var(--muted); font-size:11px; line-height:1.7; }
+    .more-guide-link { display:inline-flex; margin-top:12px; color:#8af0c2; font-size:10px; font-weight:850; }
+    .more-note { margin-top:10px; color:#68768a; font-size:10px; line-height:1.6; }
+    @media(max-width:700px) { .more-tools { grid-template-columns:1fr; gap:10px; margin-top:12px; } .more-card-head { padding:14px 14px 11px; } .more-card-body { padding:13px 14px 15px; } }
+
 </style>
 </head>
 <body>
@@ -564,6 +584,41 @@
         <div style="margin-top:10px">
           <button class="copy-btn" id="copy-btn" type="button">COPY CA</button>
         </div>
+      </section>
+
+      <section class="more-tools" aria-label="MOJ tools and information">
+        <article class="more-card">
+          <div class="more-card-head"><div class="more-kicker">MARKET OVERVIEW</div><div class="more-card-title">MARKET SNAPSHOT</div></div>
+          <div class="more-card-body">
+            <div class="more-stat-row"><span class="more-stat-label">MOJ Price</span><span class="more-stat-value" id="more-price">—</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Market Cap / FDV</span><span class="more-stat-value" id="more-fdv">—</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">24H Volume</span><span class="more-stat-value" id="more-volume">—</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">24H Change</span><span class="more-stat-value" id="more-change">—</span></div>
+            <div class="more-note">Values reflect data currently available from the existing chart API.</div>
+          </div>
+        </article>
+
+        <article class="more-card">
+          <div class="more-card-head"><div class="more-kicker">CONNECTION</div><div class="more-card-title">NETWORK STATUS</div></div>
+          <div class="more-card-body">
+            <div class="more-status-line"><span class="more-status-dot" id="more-api-dot"></span><span id="more-api-status">Waiting for API response</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Network</span><span class="more-stat-value">Sui Mainnet</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Last update</span><span class="more-stat-value" id="more-last-updated">—</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Auto refresh</span><span class="more-stat-value">30 seconds</span></div>
+            <div class="more-note">API status indicates whether market data was retrieved successfully; it is not an on-chain validator status.</div>
+          </div>
+        </article>
+
+        <article class="more-card">
+          <div class="more-card-head"><div class="more-kicker">PROJECT INFO</div><div class="more-card-title">MOJ GUIDE</div></div>
+          <div class="more-card-body">
+            <div class="more-stat-row"><span class="more-stat-label">Token</span><span class="more-stat-value">Henohenomoheji (MOJ)</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Blockchain</span><span class="more-stat-value">Sui</span></div>
+            <div class="more-stat-row"><span class="more-stat-label">Total supply</span><span class="more-stat-value">10B MOJ</span></div>
+            <div class="more-guide-copy" style="margin-top:12px">A community-driven token built on the Sui blockchain. Check the contract and transaction details before trading.</div>
+            <a class="more-guide-link" href="https://suivision.xyz/coin/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">VIEW TOKEN DETAILS ↗</a>
+          </div>
+        </article>
       </section>
       </section><!-- /screen-more -->
     </main>
@@ -902,6 +957,15 @@
     $("low").textContent = "$" + formatPrice(
       metric(payload, ["low24h", "lowUsd24h", "low_24h"]) ?? low
     );
+
+    // Mirror the existing metrics into MORE; the source data and calculations stay unchanged.
+    if ($("more-price")) $("more-price").textContent = "$" + formatPrice(displayedPrice);
+    if ($("more-fdv")) $("more-fdv").textContent = formatMoney(displayedPrice * TOTAL_SUPPLY);
+    if ($("more-volume")) $("more-volume").textContent = $("volume").textContent;
+    if ($("more-change")) {
+      $("more-change").textContent = change !== null ? ((change >= 0 ? "+" : "") + change.toFixed(2) + "%") : "—";
+      $("more-change").style.color = change === null ? "var(--muted)" : (change >= 0 ? "var(--green)" : "var(--red)");
+    }
   }
 
   function applyMovingAverageVisibility() {
@@ -1375,6 +1439,9 @@
 
       $("last-updated").textContent =
         "Last updated: " + lastSuccessfulUpdate.toLocaleTimeString();
+      if ($("more-api-status")) $("more-api-status").textContent = "Market data connected";
+      if ($("more-api-dot")) { $("more-api-dot").classList.add("is-ok"); $("more-api-dot").classList.remove("is-error"); }
+      if ($("more-last-updated")) $("more-last-updated").textContent = lastSuccessfulUpdate.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
 
     } catch (error) {
       if (error?.name === "AbortError") return;
@@ -1385,6 +1452,8 @@
         "Market data unavailable — " + (error?.message || "request failed"),
         false
       );
+      if ($("more-api-status")) $("more-api-status").textContent = "Market data unavailable";
+      if ($("more-api-dot")) { $("more-api-dot").classList.add("is-error"); $("more-api-dot").classList.remove("is-ok"); }
 
       // Keep the last successfully rendered chart visible.
     } finally {
