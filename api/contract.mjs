@@ -18,6 +18,34 @@ const ALLOWED_COMMANDS = [
   "contract",
 ];
 
+async function sendTelegramReply(token, chatId, text, replyMarkup) {
+  const response = await fetch(
+    `https://api.telegram.org/bot${token}/sendMessage`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+        disable_web_page_preview: true,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || !result.ok) {
+    throw new Error(
+      result.description || "Failed to send Telegram reply"
+    );
+  }
+
+  return result;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -48,9 +76,39 @@ export default async function handler(req, res) {
     }
 
     const message = req.body?.message;
-    const text = message?.text?.trim();
+    const chatId = message?.chat?.id;
 
-    if (!message?.chat?.id || !text) {
+    if (!chatId) {
+      return res.status(200).json({ ok: true });
+    }
+
+    // カスタム絵文字ID取得
+    const entities = [
+      ...(Array.isArray(message.entities) ? message.entities : []),
+      ...(Array.isArray(message.caption_entities)
+        ? message.caption_entities
+        : []),
+    ];
+
+    const customEmoji = entities.find(
+      (entity) =>
+        entity.type === "custom_emoji" &&
+        typeof entity.custom_emoji_id === "string"
+    );
+
+    if (customEmoji) {
+      await sendTelegramReply(
+        config.telegramBotToken,
+        chatId,
+        `Custom Emoji ID:\n${customEmoji.custom_emoji_id}`
+      );
+
+      return res.status(200).json({ ok: true });
+    }
+
+    const text = message.text?.trim();
+
+    if (!text) {
       return res.status(200).json({ ok: true });
     }
 
@@ -108,29 +166,12 @@ export default async function handler(req, res) {
       ].join("\n");
     }
 
-    const response = await fetch(
-      `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: message.chat.id,
-          text: reply,
-          ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
-          disable_web_page_preview: true,
-        }),
-      }
+    await sendTelegramReply(
+      config.telegramBotToken,
+      chatId,
+      reply,
+      replyMarkup
     );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.ok) {
-      throw new Error(
-        result.description || "Failed to send Telegram reply"
-      );
-    }
 
     return res.status(200).json({ ok: true });
   } catch (error) {
