@@ -464,8 +464,11 @@
     @media(max-width:700px){.app{padding:12px 10px 22px}.hero{align-items:flex-start}.metric-card{padding:12px}.panel-head{padding:14px 12px}}
 
 
-    .chart-wrap{display:grid;grid-template-columns:44px minmax(0,1fr);min-height:320px;padding:0;background:#000}
+    .chart-wrap{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;min-height:320px;padding:0;background:#000}
     .drawing-toolbar{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 5px;background:#020711;border-right:1px solid #123653;z-index:4}
+    .drawing-toolbar-right{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 5px;background:#020711;border-left:1px solid #123653;z-index:4}
+    .toolbar-reserved-slot{width:32px;height:34px;flex:0 0 34px;box-sizing:border-box;border:1px dashed #183044;border-radius:4px;background:transparent;opacity:.32;pointer-events:none}
+    .toolbar-reserved-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .drawing-tool{appearance:none;display:flex;align-items:center;justify-content:center;width:32px;height:34px;padding:0;border:1px solid #16405c;border-radius:4px;background:#04111e;color:#c3d9e8;font:700 19px/1 ui-monospace,SFMono-Regular,Consolas,monospace;cursor:pointer;user-select:none}
     .drawing-tool:hover{border-color:#168bd1;color:#e5f7ff;background:#06213a}
     .drawing-tool[aria-pressed="true"],.drawing-tool.is-active{border-color:#008dff;background:#063b68;color:#fff;box-shadow:inset 0 0 0 1px #159cff55,0 0 12px #008dff22}
@@ -478,8 +481,25 @@
     .fib-icon{position:relative;display:block;width:20px;height:22px;background:repeating-linear-gradient(to bottom,transparent 0 4px,#65d9ff 4px 5px,transparent 5px 6px)}
     .fib-icon i{position:absolute;top:0;bottom:0;width:1px;background:#65d9ff;left:3px;transform:rotate(22deg)}
     .fib-icon i:nth-child(2){left:8px}.fib-icon i:nth-child(3){left:13px}.fib-icon i:nth-child(4){left:18px}
-    @media(max-width:600px){.chart-wrap{grid-template-columns:38px minmax(0,1fr)}.drawing-toolbar{padding:7px 3px;gap:5px}.drawing-tool{width:30px;height:32px}.drawing-toolbar-spacer{width:30px;height:32px;flex-basis:32px}.chart-stage #chart{height:340px}}
-    @media(max-width:360px){.chart-wrap{grid-template-columns:34px minmax(0,1fr)}.drawing-tool{width:27px;height:30px}.drawing-toolbar-spacer{width:27px;height:30px;flex-basis:30px}}
+    @media(max-width:600px){.chart-wrap{grid-template-columns:38px minmax(0,1fr) 38px}.drawing-toolbar,.drawing-toolbar-right{padding:7px 3px;gap:5px}.drawing-tool{width:30px;height:32px}.drawing-toolbar-spacer{width:30px;height:32px;flex-basis:32px}.toolbar-reserved-slot{width:30px;height:32px;flex-basis:32px}.chart-stage #chart{height:340px}}
+    @media(max-width:360px){.chart-wrap{grid-template-columns:34px minmax(0,1fr) 34px}.drawing-tool{width:27px;height:30px}.drawing-toolbar-spacer{width:27px;height:30px;flex-basis:30px}.toolbar-reserved-slot{width:27px;height:30px;flex-basis:30px}}
+
+    .edge-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;background:#020711;border-bottom:1px solid #123653;min-width:0}
+    .edge-toolbar-top .ma-controls{padding:0;border:0;background:transparent;gap:12px}
+    .toolbar-caption{font-size:9px;letter-spacing:.12em;color:#55bdff;font-weight:800}
+    .edge-control{border:1px solid #16405c;border-radius:4px;background:#04111e;color:#9cc6e2;padding:7px 10px;font:700 10px inherit;cursor:pointer}
+    .chart-wrap{grid-template-columns:44px minmax(0,1fr) 44px}
+    .drawing-toolbar-right{position:relative}
+    .side-panel-content{padding:11px 14px;background:#020711;border-top:1px solid #123653;color:#9cc6e2;font-size:11px}
+    .side-panel-heading{font-weight:900;letter-spacing:.12em;color:#55bdff;margin-bottom:9px}
+    .watchlist-row{display:flex;justify-content:space-between;gap:12px;max-width:360px;padding:8px 0;border-bottom:1px solid #123653}
+    .watchlist-row strong{color:#00f0a0;font-variant-numeric:tabular-nums}
+    .side-panel-note{margin-top:8px;color:#7d9bb6;font-size:10px}
+    .side-panel-btn{font-size:17px}
+    .side-panel-btn.is-active{border-color:#008dff;background:#063b68;color:#fff}
+    @media(max-width:600px){.edge-toolbar{gap:7px;padding:8px}.edge-toolbar-top .ma-controls{gap:8px}.toolbar-caption{font-size:8px}.edge-control{padding:6px}.chart-wrap{grid-template-columns:38px minmax(0,1fr) 38px}}
+    @media(max-width:360px){.edge-toolbar-top{align-items:flex-start}.edge-toolbar-top .ma-controls{flex-wrap:wrap}.chart-wrap{grid-template-columns:34px minmax(0,1fr) 34px}}
+
   </style>
 </head>
 <body>
@@ -553,23 +573,12 @@
           <div class="chart-badge"><span class="chart-badge-dot"></span><span id="range-badge">24H VIEW · 5M</span></div>
         </div>
 
-        <div class="timeframe-controls" role="group" aria-label="Chart timeframe">
-          <button class="timeframe-btn" type="button" data-interval="5m" aria-pressed="true">5M</button>
-          <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
-          <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
-          <button class="timeframe-btn" type="button" data-interval="4h" aria-pressed="false">4H</button>
-        </div>
 
 
-        <div class="ohlc-readout" aria-label="Selected candle OHLC data">
-          <div class="ohlc-cell"><span class="ohlc-label">O</span><span class="ohlc-value" id="ohlc-open">—</span></div>
-          <div class="ohlc-cell"><span class="ohlc-label">H</span><span class="ohlc-value" id="ohlc-high">—</span></div>
-          <div class="ohlc-cell"><span class="ohlc-label">L</span><span class="ohlc-value" id="ohlc-low">—</span></div>
-          <div class="ohlc-cell"><span class="ohlc-label">C</span><span class="ohlc-value" id="ohlc-close">—</span></div>
-          <div class="ohlc-cell"><span class="ohlc-label">VOL</span><span class="ohlc-value" id="ohlc-volume">—</span></div>
-        </div>
 
-        <div class="ma-controls" aria-label="Moving average visibility">
+        <div class="edge-toolbar edge-toolbar-top" aria-label="Chart controls">
+          <span class="toolbar-caption">INDICATORS</span>
+          <div class="ma-controls" aria-label="Moving average visibility">
           <label class="ma-toggle ma7-label">
             <input id="toggle-ma7" type="checkbox" checked>
             MA7
@@ -583,6 +592,18 @@
             MA99
           </label>
         </div>
+          <button type="button" class="edge-control" id="indicators-reset">RESET</button>
+        </div>
+
+        <div class="ohlc-readout" aria-label="Selected candle OHLC data">
+          <div class="ohlc-cell"><span class="ohlc-label">O</span><span class="ohlc-value" id="ohlc-open">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">H</span><span class="ohlc-value" id="ohlc-high">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">L</span><span class="ohlc-value" id="ohlc-low">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">C</span><span class="ohlc-value" id="ohlc-close">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">VOL</span><span class="ohlc-value" id="ohlc-volume">—</span></div>
+        </div>
+
+
 
         <div class="chart-wrap">
           <div class="drawing-toolbar" role="toolbar" aria-label="Drawing tools">
@@ -599,6 +620,18 @@
             <div id="chart"></div>
             <svg id="drawing-overlay" class="drawing-overlay" aria-label="Chart drawings"></svg>
           </div>
+          <aside class="drawing-toolbar-right" aria-label="Chart side panels">
+            <button class="drawing-tool side-panel-btn is-active" type="button" data-side-panel="watchlist" title="Watchlist" aria-label="Watchlist">☷</button>
+            <button class="drawing-tool side-panel-btn" type="button" data-side-panel="alerts" title="Alerts" aria-label="Alerts">♧</button>
+            <button class="drawing-tool side-panel-btn" type="button" data-side-panel="chat" title="Chat" aria-label="Chat">▤</button>
+          </aside>
+        </div>
+
+        <div class="timeframe-controls" role="group" aria-label="Bottom chart timeframe">
+          <button class="timeframe-btn" type="button" data-interval="5m" aria-pressed="true">5M</button>
+          <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
+          <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
+          <button class="timeframe-btn" type="button" data-interval="4h" aria-pressed="false">4H</button>
         </div>
 
         <div class="chart-hint">
@@ -610,6 +643,11 @@
             <span class="status-indicator" id="status-indicator"></span>
             <span id="chart-status-text">Connecting to market data…</span>
           </div>
+        <div class="side-panel-content" id="side-panel-content" aria-live="polite">
+          <div class="side-panel-heading" id="side-panel-heading">WATCHLIST</div>
+          <div class="watchlist-row"><span>MOJ / USD</span><strong id="watchlist-price">$—</strong></div>
+          <div class="side-panel-note" id="side-panel-note">Henohenomoheji · Sui Mainnet</div>
+        </div>
           <span id="last-updated">Last updated: —</span>
         </div>
       </section>
@@ -962,6 +1000,8 @@
         : last.close;
 
     $("price").textContent = "$" + formatPrice(displayedPrice);
+    const watchlistPrice = $("watchlist-price");
+    if (watchlistPrice) watchlistPrice.textContent = "$" + formatPrice(displayedPrice);
     $("fdv").textContent =
       formatMoney(displayedPrice * TOTAL_SUPPLY);
 
@@ -1771,6 +1811,41 @@
   });
   drawingOverlay.addEventListener("pointercancel", () => { drawingStart = null; drawingPreview = null; redrawDrawings(); });
   setDrawTool("crosshair");
+
+  const sidePanelContent = $("side-panel-content");
+  document.querySelectorAll("[data-side-panel]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = button.dataset.sidePanel;
+      document.querySelectorAll("[data-side-panel]").forEach((item) => item.classList.toggle("is-active", item === button));
+      const heading = $("side-panel-heading");
+      const note = $("side-panel-note");
+      const row = sidePanelContent.querySelector(".watchlist-row");
+      if (panel === "watchlist") {
+        heading.textContent = "WATCHLIST";
+        row.hidden = false;
+        note.textContent = "Henohenomoheji · Sui Mainnet";
+      } else if (panel === "alerts") {
+        heading.textContent = "PRICE ALERTS";
+        row.hidden = true;
+        note.textContent = "Price alerts are not connected to a notification service yet.";
+      } else {
+        heading.textContent = "COMMUNITY CHAT";
+        row.hidden = true;
+        note.textContent = "Open the official MOJ Telegram community: ";
+        const link = document.createElement("a");
+        link.href = "https://t.me/heno_henomoheji";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open Telegram ↗";
+        link.style.color = "#00f0a0";
+        note.replaceChildren(document.createTextNode("Official MOJ community: "), link);
+      }
+    });
+  });
+  $("indicators-reset").addEventListener("click", () => {
+    ["toggle-ma7", "toggle-ma25", "toggle-ma99"].forEach((id) => { $(id).checked = true; });
+    if (ma7Series && ma25Series && ma99Series) applyMovingAverageVisibility();
+  });
 
   $("copy-btn").addEventListener("click", async () => {
     const button = $("copy-btn");
