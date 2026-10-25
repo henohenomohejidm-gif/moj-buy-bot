@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -186,6 +186,9 @@
 
 
     .timeframe-controls { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding:12px 18px; border-bottom:1px solid var(--border); background:#07090c; }
+    .ohlc-readout{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:11px 14px;background:#020711;border:1px solid #123653;border-radius:7px;margin:10px 12px;color:#9fc9e8;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+    .ohlc-cell{min-width:0;white-space:nowrap}.ohlc-label{color:#62bfff;margin-right:6px}.ohlc-value{color:#dceeff}.ohlc-value.up{color:#00f0a0}.ohlc-value.down{color:#ff7188}
+    @media(max-width:600px){.ohlc-readout{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;font-size:11px;padding:9px}.ohlc-cell:last-child{display:none}}
     .timeframe-btn { appearance:none; border:1px solid #29313a; border-radius:7px; background:#0b0e12; color:#aeb8c2; padding:8px 13px; font:800 10px/1 inherit; letter-spacing:.06em; cursor:pointer; transition:background .15s,border-color .15s,color .15s; }
     .timeframe-btn:hover { border-color:#36785c; color:#e9fff3; }
     .timeframe-btn[aria-pressed="true"] { color:#9af0c3; border-color:#28754f; background:rgba(54,230,160,.11); box-shadow:inset 0 0 0 1px rgba(54,230,160,.08); }
@@ -403,27 +406,60 @@
     .home-chart-link { border:0; background:none; color:#35e6a0; font:inherit; font-weight:700; letter-spacing:.04em; cursor:pointer; padding:4px 0; }
     @media(max-width:700px) { .home-trend { margin-top:16px; padding:14px 12px 12px; } .home-trend-chart { height:120px; } }
 
-    /* MORE additions: reuse the existing terminal palette and card language. */
-    .more-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
-    .more-card { min-width:0; overflow:hidden; border:1px solid var(--border); border-radius:14px; background:linear-gradient(145deg,#111925,#0b1018); }
-    .more-card-head { padding:16px 17px 13px; border-bottom:1px solid var(--border); }
-    .more-card-body { padding:15px 17px 17px; }
-    .more-kicker { color:var(--green); font-size:9px; font-weight:850; letter-spacing:.14em; }
-    .more-card-title { margin-top:5px; font-size:12px; font-weight:850; letter-spacing:.035em; }
-    .more-stat-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:9px 0; border-bottom:1px solid rgba(32,43,58,.72); }
-    .more-stat-row:last-child { border-bottom:0; padding-bottom:0; }
-    .more-stat-label { color:var(--muted); font-size:10px; }
-    .more-stat-value { color:var(--text); font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; overflow-wrap:anywhere; }
-    .more-status-line { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:11px; line-height:1.5; }
-    .more-status-dot { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#8290a4; box-shadow:0 0 0 3px rgba(130,144,164,.1); }
-    .more-status-dot.is-ok { background:var(--green); box-shadow:0 0 0 3px rgba(54,230,160,.1); }
-    .more-status-dot.is-error { background:var(--red); box-shadow:0 0 0 3px rgba(255,101,122,.1); }
-    .more-guide-copy { color:var(--muted); font-size:11px; line-height:1.7; }
-    .more-guide-link { display:inline-flex; margin-top:12px; color:#8af0c2; font-size:10px; font-weight:850; }
-    .more-note { margin-top:10px; color:#68768a; font-size:10px; line-height:1.6; }
-    @media(max-width:700px) { .more-tools { grid-template-columns:1fr; gap:10px; margin-top:12px; } .more-card-head { padding:14px 14px 11px; } .more-card-body { padding:13px 14px 15px; } }
 
-</style>
+
+    /* === MOJ PROGRAMMER TERMINAL THEME === */
+    :root {
+      --bg:#020711; --panel:#030b16; --border:#123653;
+      --text:#d8ecff; --muted:#7d9bb6; --green:#00f0a0;
+      --red:#ff637d; --blue:#159cff; --chart-bg:#000000;
+      --ma7:#ffd700; --ma25:#d3d3d3; --ma99:#ffffff;
+    }
+    body {
+      background:#020711;
+      background-image:linear-gradient(rgba(0,153,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,153,255,.025) 1px,transparent 1px);
+      background-size:28px 28px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+      letter-spacing:.01em;
+    }
+    .app{width:min(1500px,100%);padding:16px 20px 28px}
+    .topbar{padding:8px 0 16px;border-bottom:1px solid #123653}
+    .brand-mark{border-radius:7px;border-color:#0879a9;background:#031525;color:#00f0a0;box-shadow:0 0 18px #007cb522}
+    .brand-name{color:#e8f5ff;letter-spacing:.08em}
+    .brand-sub{font-family:inherit;color:#69b8e8}
+    .network{border-radius:4px;border-color:#075b48;background:#001c18;color:#00f0a0}
+    .network-dot{box-shadow:0 0 10px #00f0a0}
+    .hero{padding:24px 0 18px;align-items:center}
+    .eyebrow{color:#00f0a0}
+    h1{font-size:clamp(28px,3.6vw,40px);letter-spacing:-.04em}
+    .subtitle{color:#8ab6d8}
+    .metrics{gap:10px;margin-bottom:14px}
+    .metric-card{border-radius:5px;border-color:#124064;background:#030b16;box-shadow:inset 0 1px 0 #0a2235}
+    .metric-card:first-child{border-color:#007e63}
+    .metric-label{color:#4dbdff;letter-spacing:.1em}
+    .metric-value{font-family:inherit;color:#d9efff}
+    .metric-foot{color:#789ab4}
+    .panel{border-radius:6px;border-color:#124064;background:#030b16;box-shadow:0 0 0 1px rgba(0,115,180,.06)}
+    .panel-head{border-bottom-color:#123653;background:#030b16}
+    .panel-title{font-family:inherit;color:#dff3ff;letter-spacing:.08em;text-transform:uppercase}
+    .panel-subtitle{color:#7aa7c7}
+    .chart-badge{border-radius:4px;border-color:#075b48;background:#001b16;color:#00f0a0}
+    .chart-badge-dot{box-shadow:0 0 9px #00f0a0}
+    .timeframe-controls{background:#020711;border-bottom-color:#123653}
+    .timeframe-btn{border-radius:4px;border-color:#16405c;background:#04111e;color:#9cc6e2;font-family:inherit;letter-spacing:.02em}
+    .timeframe-btn:hover{border-color:#168bd1;color:#e5f7ff;background:#06213a}
+    .timeframe-btn[aria-pressed="true"]{border-color:#008dff;background:#063b68;color:#e8f7ff;box-shadow:inset 0 0 0 1px #159cff55,0 0 12px #008dff22}
+    .ma-controls{background:#000;border-bottom-color:#123653}
+    .chart-wrap{background:#000}
+    .chart-status{background:#020711;border-top-color:#123653;color:#7da6c4}
+    .history-panel{margin-top:14px}
+    .history-table th{color:#55bdff}
+    button,a{transition:color .15s,border-color .15s,background .15s}
+    a:hover{color:#5dc5ff}
+    ::selection{background:#0875bd;color:#fff}
+    @media(max-width:700px){.app{padding:12px 10px 22px}.hero{align-items:flex-start}.metric-card{padding:12px}.panel-head{padding:14px 12px}}
+
+  </style>
 </head>
 <body>
   <div class="app">
@@ -501,6 +537,14 @@
           <button class="timeframe-btn" type="button" data-interval="15m" aria-pressed="false">15M</button>
           <button class="timeframe-btn" type="button" data-interval="1h" aria-pressed="false">1H</button>
           <button class="timeframe-btn" type="button" data-interval="4h" aria-pressed="false">4H</button>
+        </div>
+
+        <div class="ohlc-readout" aria-label="Selected candle OHLC data">
+          <div class="ohlc-cell"><span class="ohlc-label">O</span><span class="ohlc-value" id="ohlc-open">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">H</span><span class="ohlc-value" id="ohlc-high">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">L</span><span class="ohlc-value" id="ohlc-low">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">C</span><span class="ohlc-value" id="ohlc-close">—</span></div>
+          <div class="ohlc-cell"><span class="ohlc-label">VOL</span><span class="ohlc-value" id="ohlc-volume">—</span></div>
         </div>
 
         <div class="ma-controls" aria-label="Moving average visibility">
@@ -584,41 +628,6 @@
         <div style="margin-top:10px">
           <button class="copy-btn" id="copy-btn" type="button">COPY CA</button>
         </div>
-      </section>
-
-      <section class="more-tools" aria-label="MOJ tools and information">
-        <article class="more-card">
-          <div class="more-card-head"><div class="more-kicker">MARKET OVERVIEW</div><div class="more-card-title">MARKET SNAPSHOT</div></div>
-          <div class="more-card-body">
-            <div class="more-stat-row"><span class="more-stat-label">MOJ Price</span><span class="more-stat-value" id="more-price">—</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Market Cap / FDV</span><span class="more-stat-value" id="more-fdv">—</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">24H Volume</span><span class="more-stat-value" id="more-volume">—</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">24H Change</span><span class="more-stat-value" id="more-change">—</span></div>
-            <div class="more-note">Values reflect data currently available from the existing chart API.</div>
-          </div>
-        </article>
-
-        <article class="more-card">
-          <div class="more-card-head"><div class="more-kicker">CONNECTION</div><div class="more-card-title">NETWORK STATUS</div></div>
-          <div class="more-card-body">
-            <div class="more-status-line"><span class="more-status-dot" id="more-api-dot"></span><span id="more-api-status">Waiting for API response</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Network</span><span class="more-stat-value">Sui Mainnet</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Last update</span><span class="more-stat-value" id="more-last-updated">—</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Auto refresh</span><span class="more-stat-value">30 seconds</span></div>
-            <div class="more-note">API status indicates whether market data was retrieved successfully; it is not an on-chain validator status.</div>
-          </div>
-        </article>
-
-        <article class="more-card">
-          <div class="more-card-head"><div class="more-kicker">PROJECT INFO</div><div class="more-card-title">MOJ GUIDE</div></div>
-          <div class="more-card-body">
-            <div class="more-stat-row"><span class="more-stat-label">Token</span><span class="more-stat-value">Henohenomoheji (MOJ)</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Blockchain</span><span class="more-stat-value">Sui</span></div>
-            <div class="more-stat-row"><span class="more-stat-label">Total supply</span><span class="more-stat-value">10B MOJ</span></div>
-            <div class="more-guide-copy" style="margin-top:12px">A community-driven token built on the Sui blockchain. Check the contract and transaction details before trading.</div>
-            <a class="more-guide-link" href="https://suivision.xyz/coin/0x04c06ee518a9450ca508fd553e227f509c936b3142f299e66e0038e0c6fb5e8e::moj::MOJ" target="_blank" rel="noopener noreferrer">VIEW TOKEN DETAILS ↗</a>
-          </div>
-        </article>
       </section>
       </section><!-- /screen-more -->
     </main>
@@ -957,15 +966,6 @@
     $("low").textContent = "$" + formatPrice(
       metric(payload, ["low24h", "lowUsd24h", "low_24h"]) ?? low
     );
-
-    // Mirror the existing metrics into MORE; the source data and calculations stay unchanged.
-    if ($("more-price")) $("more-price").textContent = "$" + formatPrice(displayedPrice);
-    if ($("more-fdv")) $("more-fdv").textContent = formatMoney(displayedPrice * TOTAL_SUPPLY);
-    if ($("more-volume")) $("more-volume").textContent = $("volume").textContent;
-    if ($("more-change")) {
-      $("more-change").textContent = change !== null ? ((change >= 0 ? "+" : "") + change.toFixed(2) + "%") : "—";
-      $("more-change").style.color = change === null ? "var(--muted)" : (change >= 0 ? "var(--green)" : "var(--red)");
-    }
   }
 
   function applyMovingAverageVisibility() {
@@ -980,6 +980,18 @@
     ma99Series.applyOptions({
       visible: $("toggle-ma99").checked
     });
+  }
+
+  function updateOhlcReadout(candle) {
+    const set = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+    if (!candle) return;
+    set("ohlc-open", formatPrice(candle.open));
+    set("ohlc-high", formatPrice(candle.high));
+    set("ohlc-low", formatPrice(candle.low));
+    set("ohlc-close", formatPrice(candle.close));
+    set("ohlc-volume", Number(candle.volume || 0).toLocaleString("en-US", { maximumFractionDigits: 4 }));
+    const closeEl = $("ohlc-close");
+    if (closeEl) closeEl.className = "ohlc-value " + (candle.close >= candle.open ? "up" : "down");
   }
 
   function createChart() {
@@ -1143,6 +1155,18 @@
     $("toggle-ma99").addEventListener("change", applyMovingAverageVisibility);
 
     applyMovingAverageVisibility();
+
+    chart.subscribeCrosshairMove((param) => {
+      if (!param || !param.time || !param.seriesData) {
+        if (lastCandles && lastCandles.length) updateOhlcReadout(lastCandles[lastCandles.length - 1]);
+        return;
+      }
+      const candle = param.seriesData.get(candleSeries);
+      if (candle && Number.isFinite(candle.open)) {
+        const source = lastCandles?.find(item => item.time === param.time);
+        updateOhlcReadout(source || candle);
+      }
+    });
 
     resizeObserver = new ResizeObserver(() => {
       if (!chart || !chartEl.clientWidth) return;
@@ -1339,6 +1363,7 @@
     updateMetrics(candles, payload);
 
     const last = candles[candles.length - 1];
+    updateOhlcReadout(last);
 
     if (!currentPriceLine) {
       currentPriceLine = candleSeries.createPriceLine({
@@ -1439,9 +1464,6 @@
 
       $("last-updated").textContent =
         "Last updated: " + lastSuccessfulUpdate.toLocaleTimeString();
-      if ($("more-api-status")) $("more-api-status").textContent = "Market data connected";
-      if ($("more-api-dot")) { $("more-api-dot").classList.add("is-ok"); $("more-api-dot").classList.remove("is-error"); }
-      if ($("more-last-updated")) $("more-last-updated").textContent = lastSuccessfulUpdate.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
 
     } catch (error) {
       if (error?.name === "AbortError") return;
@@ -1452,8 +1474,6 @@
         "Market data unavailable — " + (error?.message || "request failed"),
         false
       );
-      if ($("more-api-status")) $("more-api-status").textContent = "Market data unavailable";
-      if ($("more-api-dot")) { $("more-api-dot").classList.add("is-error"); $("more-api-dot").classList.remove("is-ok"); }
 
       // Keep the last successfully rendered chart visible.
     } finally {
@@ -1606,6 +1626,16 @@
   screenButtons.forEach((button) => {
     button.addEventListener("click", () => showScreen(button.dataset.screen));
   });
+
+  // Connect the Home panel's "OPEN FULL CHART" action to the existing Chart screen.
+  // This is an in-page route, so it keeps the existing API, chart instance and timeframe state.
+  document.querySelectorAll('.home-chart-link[data-screen="chart"]').forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      showScreen("chart");
+    });
+  });
+
   showScreen("home");
 
   document.querySelectorAll(".timeframe-btn").forEach((button) => {
