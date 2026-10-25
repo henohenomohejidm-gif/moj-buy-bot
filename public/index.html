@@ -186,9 +186,13 @@
 
 
     .timeframe-controls { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding:12px 18px; border-bottom:1px solid var(--border); background:#07090c; }
-    .ohlc-readout{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:11px 14px;background:#020711;border:1px solid #123653;border-radius:7px;margin:10px 12px;color:#9fc9e8;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-    .ohlc-cell{min-width:0;white-space:nowrap}.ohlc-label{color:#62bfff;margin-right:6px}.ohlc-value{color:#dceeff}.ohlc-value.up{color:#00f0a0}.ohlc-value.down{color:#ff7188}
-    @media(max-width:600px){.ohlc-readout{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;font-size:11px;padding:9px}.ohlc-cell:last-child{display:none}}
+    .ohlc-readout{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:11px 14px;background:#020711;border:1px solid #123653;border-radius:7px;margin:10px 12px;color:#9fc9e8;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;min-width:0;box-sizing:border-box}
+    .ohlc-cell{display:flex;align-items:baseline;gap:5px;min-width:0;white-space:normal;overflow:hidden}
+    .ohlc-label{flex:0 0 auto;color:#62bfff;margin-right:0}
+    .ohlc-value{display:block;min-width:0;max-width:100%;color:#dceeff;overflow-wrap:anywhere;word-break:normal;font-variant-numeric:tabular-nums}
+    .ohlc-value.up{color:#00f0a0}.ohlc-value.down{color:#ff7188}
+    @media(max-width:600px){.ohlc-readout{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;font-size:11px;padding:10px 12px}.ohlc-cell{justify-content:flex-start}.ohlc-value{font-size:clamp(9px,2.6vw,11px)}}
+    @media(max-width:360px){.ohlc-readout{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 8px;padding:9px}.ohlc-value{font-size:10px}}
     .timeframe-btn { appearance:none; border:1px solid #29313a; border-radius:7px; background:#0b0e12; color:#aeb8c2; padding:8px 13px; font:800 10px/1 inherit; letter-spacing:.06em; cursor:pointer; transition:background .15s,border-color .15s,color .15s; }
     .timeframe-btn:hover { border-color:#36785c; color:#e9fff3; }
     .timeframe-btn[aria-pressed="true"] { color:#9af0c3; border-color:#28754f; background:rgba(54,230,160,.11); box-shadow:inset 0 0 0 1px rgba(54,230,160,.08); }
@@ -1626,16 +1630,6 @@
   screenButtons.forEach((button) => {
     button.addEventListener("click", () => showScreen(button.dataset.screen));
   });
-
-  // Connect the Home panel's "OPEN FULL CHART" action to the existing Chart screen.
-  // This is an in-page route, so it keeps the existing API, chart instance and timeframe state.
-  document.querySelectorAll('.home-chart-link[data-screen="chart"]').forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      showScreen("chart");
-    });
-  });
-
   showScreen("home");
 
   document.querySelectorAll(".timeframe-btn").forEach((button) => {
