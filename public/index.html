@@ -463,6 +463,22 @@
     ::selection{background:#0875bd;color:#fff}
     @media(max-width:700px){.app{padding:12px 10px 22px}.hero{align-items:flex-start}.metric-card{padding:12px}.panel-head{padding:14px 12px}}
 
+
+    .chart-wrap{display:grid;grid-template-columns:44px minmax(0,1fr);min-height:320px;padding:0;background:#000}
+    .drawing-toolbar{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 5px;background:#020711;border-right:1px solid #123653;z-index:4}
+    .drawing-tool{appearance:none;display:flex;align-items:center;justify-content:center;width:32px;height:34px;padding:0;border:1px solid #16405c;border-radius:4px;background:#04111e;color:#c3d9e8;font:700 19px/1 ui-monospace,SFMono-Regular,Consolas,monospace;cursor:pointer;user-select:none}
+    .drawing-tool:hover{border-color:#168bd1;color:#e5f7ff;background:#06213a}
+    .drawing-tool[aria-pressed="true"],.drawing-tool.is-active{border-color:#008dff;background:#063b68;color:#fff;box-shadow:inset 0 0 0 1px #159cff55,0 0 12px #008dff22}
+    .drawing-tool.drawing-clear{margin-top:auto;color:#ff8b9a}
+    .chart-stage{position:relative;min-width:0;min-height:320px;background:#000}
+    .chart-stage #chart{width:100%;height:390px;background:#000;touch-action:none;-webkit-user-select:none;user-select:none}
+    .drawing-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}
+    .chart-stage.is-drawing .drawing-overlay{pointer-events:auto;cursor:crosshair;touch-action:none}
+    .fib-icon{position:relative;display:block;width:20px;height:22px;background:repeating-linear-gradient(to bottom,transparent 0 4px,#65d9ff 4px 5px,transparent 5px 6px)}
+    .fib-icon i{position:absolute;top:0;bottom:0;width:1px;background:#65d9ff;left:3px;transform:rotate(22deg)}
+    .fib-icon i:nth-child(2){left:8px}.fib-icon i:nth-child(3){left:13px}.fib-icon i:nth-child(4){left:18px}
+    @media(max-width:600px){.chart-wrap{grid-template-columns:38px minmax(0,1fr)}.drawing-toolbar{padding:7px 3px;gap:5px}.drawing-tool{width:30px;height:32px}.chart-stage #chart{height:340px}}
+    @media(max-width:360px){.chart-wrap{grid-template-columns:34px minmax(0,1fr)}.drawing-tool{width:27px;height:30px}}
   </style>
 </head>
 <body>
@@ -543,6 +559,7 @@
           <button class="timeframe-btn" type="button" data-interval="4h" aria-pressed="false">4H</button>
         </div>
 
+
         <div class="ohlc-readout" aria-label="Selected candle OHLC data">
           <div class="ohlc-cell"><span class="ohlc-label">O</span><span class="ohlc-value" id="ohlc-open">—</span></div>
           <div class="ohlc-cell"><span class="ohlc-label">H</span><span class="ohlc-value" id="ohlc-high">—</span></div>
@@ -567,7 +584,17 @@
         </div>
 
         <div class="chart-wrap">
-          <div id="chart"></div>
+          <div class="drawing-toolbar" role="toolbar" aria-label="Drawing tools">
+            <button class="drawing-tool is-active" id="draw-crosshair" type="button" data-draw-tool="crosshair" aria-pressed="true" title="Crosshair">＋</button>
+            <button class="drawing-tool" id="draw-trendline" type="button" data-draw-tool="trendline" aria-pressed="false" title="Trend Line">／</button>
+            <button class="drawing-tool" id="draw-fibonacci" type="button" data-draw-tool="fibonacci" aria-pressed="false" title="Fibonacci Retracement"><span class="fib-icon"><i></i><i></i><i></i><i></i></span></button>
+            <button class="drawing-tool" id="draw-text" type="button" data-draw-tool="text" aria-pressed="false" title="Text">T</button>
+            <button class="drawing-tool drawing-clear" id="draw-clear" type="button" title="Clear drawings" aria-label="Clear drawings">×</button>
+          </div>
+          <div class="chart-stage">
+            <div id="chart"></div>
+            <svg id="drawing-overlay" class="drawing-overlay" aria-label="Chart drawings"></svg>
+          </div>
         </div>
 
         <div class="chart-hint">
@@ -1648,6 +1675,98 @@
       fetchChartData();
     });
   });
+
+
+  // Left-side drawing toolbar. Drawings are kept as SVG overlays and do not alter market data.
+  let activeDrawTool = "crosshair";
+  let drawingStart = null;
+  let drawingPreview = null;
+  const chartStage = document.querySelector(".chart-stage");
+  const drawingOverlay = $("drawing-overlay");
+  const drawingItems = [];
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  function setDrawTool(tool) {
+    activeDrawTool = tool;
+    document.querySelectorAll("[data-draw-tool]").forEach((button) => {
+      const selected = button.dataset.drawTool === tool;
+      button.classList.toggle("is-active", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    chartStage.classList.toggle("is-drawing", tool !== "crosshair");
+  }
+
+  function svgNode(tag, attrs = {}) {
+    const node = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    return node;
+  }
+
+  function renderDrawing(item, preview = false) {
+    const group = svgNode("g", { "data-drawing": "true" });
+    const lineStyle = { stroke: "#65d9ff", "stroke-width": 1.5, "vector-effect": "non-scaling-stroke", "stroke-linecap": "round" };
+    if (item.type === "trendline") {
+      group.appendChild(svgNode("line", { ...lineStyle, x1:item.x1, y1:item.y1, x2:item.x2, y2:item.y2, "stroke-dasharray": preview ? "4 3" : "none" }));
+    } else if (item.type === "fibonacci") {
+      const levels = [0,0.236,0.382,0.5,0.618,0.786,1];
+      const top = Math.min(item.y1,item.y2), bottom = Math.max(item.y1,item.y2), height = Math.max(1,bottom-top);
+      levels.forEach((level) => {
+        const y = item.y1 <= item.y2 ? item.y1 + height * level : item.y1 - height * level;
+        group.appendChild(svgNode("line", { ...lineStyle, x1:item.x1, y1:y, x2:item.x2, y2:y, stroke: level === 0 || level === 1 ? "#65d9ff" : "#4a9fc1", "stroke-width": level === 0 || level === 1 ? 1.4 : 1, "stroke-dasharray": level === 0 || level === 1 ? "none" : "4 3" }));
+        const label = svgNode("text", { x:Math.min(item.x1,item.x2)+4, y:y-3, fill:"#9bdfff", "font-size":10, "font-family":"ui-monospace,monospace", "paint-order":"stroke", stroke:"#000", "stroke-width":2 });
+        label.textContent = `${(level*100).toFixed(1)}%`;
+        group.appendChild(label);
+      });
+    } else if (item.type === "text") {
+      const label = svgNode("text", { x:item.x1, y:item.y1, fill:"#e8f7ff", "font-size":13, "font-family":"ui-monospace,monospace", "paint-order":"stroke", stroke:"#000", "stroke-width":3 });
+      label.textContent = item.text;
+      group.appendChild(label);
+    }
+    if (!preview) group.style.pointerEvents = "none";
+    return group;
+  }
+
+  function redrawDrawings() {
+    drawingOverlay.replaceChildren();
+    drawingItems.forEach((item) => drawingOverlay.appendChild(renderDrawing(item)));
+    if (drawingPreview) drawingOverlay.appendChild(renderDrawing(drawingPreview, true));
+  }
+
+  function drawingPoint(event) {
+    const rect = drawingOverlay.getBoundingClientRect();
+    return { x: Math.max(0,Math.min(rect.width,event.clientX-rect.left)), y: Math.max(0,Math.min(rect.height,event.clientY-rect.top)) };
+  }
+
+  document.querySelectorAll("[data-draw-tool]").forEach((button) => button.addEventListener("click", () => setDrawTool(button.dataset.drawTool)));
+  $("draw-clear").addEventListener("click", () => { drawingItems.length = 0; drawingPreview = null; drawingStart = null; redrawDrawings(); });
+  drawingOverlay.addEventListener("pointerdown", (event) => {
+    if (activeDrawTool === "crosshair") return;
+    event.preventDefault();
+    const point = drawingPoint(event);
+    if (activeDrawTool === "text") {
+      const value = window.prompt("Enter chart text:");
+      if (value && value.trim()) { drawingItems.push({ type:"text", x1:point.x, y1:point.y, text:value.trim().slice(0,120) }); redrawDrawings(); }
+      return;
+    }
+    if (!drawingStart) {
+      drawingStart = point;
+      drawingPreview = { type:activeDrawTool, x1:point.x, y1:point.y, x2:point.x, y2:point.y };
+      redrawDrawings();
+      return;
+    }
+    drawingItems.push({ type:activeDrawTool, x1:drawingStart.x, y1:drawingStart.y, x2:point.x, y2:point.y });
+    drawingStart = null;
+    drawingPreview = null;
+    redrawDrawings();
+  });
+  drawingOverlay.addEventListener("pointermove", (event) => {
+    if (!drawingStart || !drawingPreview) return;
+    const point = drawingPoint(event);
+    drawingPreview = { ...drawingPreview, x2:point.x, y2:point.y };
+    redrawDrawings();
+  });
+  drawingOverlay.addEventListener("pointercancel", () => { drawingStart = null; drawingPreview = null; redrawDrawings(); });
+  setDrawTool("crosshair");
 
   $("copy-btn").addEventListener("click", async () => {
     const button = $("copy-btn");
